@@ -2,23 +2,21 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Midus Lounge - Karte</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        
-        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
-        
+        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; }
         .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; color: var(--cyan); }
         .content { padding: 0 20px; flex-grow: 1; overflow-y: auto; }
         
         .section-title { color: var(--cyan); margin: 20px 0 10px 0; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .menu-item { background: var(--panel-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: white; border: 1px solid #222; }
+        .menu-item { background: var(--panel-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; color: white; }
         .price { font-weight: bold; color: var(--cyan); }
         
-        .tab-bar { background-color: var(--panel-bg); padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; flex-shrink: 0; }
+        .tab-bar { background-color: #151515; padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
         .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 20px; }
         .tab-link.active { color: var(--cyan); }
     </style>
@@ -27,30 +25,37 @@
 
 <div class="app-container">
     <div class="header">Unsere Karte</div>
-    
-    <div class="content">
-        <!-- Kategorie Cocktails -->
-        <h3 class="section-title">Signature Cocktails</h3>
-        <div class="menu-item"><span>Coco Sunset</span><span class="price">8.50 €</span></div>
-        <div class="menu-item"><span>Electric Lagoon</span><span class="price">9.00 €</span></div>
-        <div class="menu-item"><span>Espolon Sour</span><span class="price">9.50 €</span></div>
+    <div id="menu-content" class="content">
+        </div>
 
-        <!-- Kategorie Rum/Spirituosen -->
-        <h3 class="section-title">Rum & Spirits</h3>
-        <div class="menu-item"><span>Hawienero Rum</span><span class="price">7.50 €</span></div>
-        <div class="menu-item"><span>42 Below Vodka</span><span class="price">6.50 €</span></div>
-        
-        <!-- Kategorie Alkoholfrei -->
-        <h3 class="section-title">Alkoholfrei</h3>
-        <div class="menu-item"><span>Homemade Lemonade</span><span class="price">4.50 €</span></div>
-    </div>
-
-    <!-- Navigation -->
     <div class="tab-bar">
         <a href="index.html" class="tab-link">🏠</a>
         <a href="karte.html" class="tab-link active">🔍</a>
         <a href="events.html" class="tab-link">🎟️</a>
     </div>
 </div>
+
+<script>
+    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
+
+    async function loadMenu() {
+        const { data } = await sb.from('menu').select('*').order('category');
+        const container = document.getElementById('menu-content');
+        
+        let currentCategory = '';
+        data.forEach(item => {
+            if (item.category !== currentCategory) {
+                currentCategory = item.category;
+                container.innerHTML += `<h3 class="section-title">${currentCategory}</h3>`;
+            }
+            container.innerHTML += `
+                <div class="menu-item">
+                    <span>${item.name}</span>
+                    <span class="price">${item.price} €</span>
+                </div>`;
+        });
+    }
+    loadMenu();
+</script>
 </body>
 </html>
