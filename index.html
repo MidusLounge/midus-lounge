@@ -12,36 +12,46 @@
         
         .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         
-        /* Login Overlay */
-        #login-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .logo-img { height: 250px; margin-bottom: 30px; object-fit: contain; }
+        /* Overlays */
+        #login-overlay, #birthday-setup { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        #birthday-setup { display: none; z-index: 1001; }
+        
         input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #111; color: white; border: 1px solid #333; text-align: center; }
-        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; }
+        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; color: #000; }
 
         /* Main View */
         .top-nav { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { height: 100px; object-fit: contain; }
         .content { padding: 0 20px; flex-grow: 1; }
         .loyalty-card { background: var(--panel-bg); padding: 25px; border-radius: 24px; border: 1px solid rgba(0, 210, 255, 0.2); color: white; }
         
-        /* Footer Navigation (4 Punkte) */
+        /* Nav */
         .tab-bar { background-color: var(--panel-bg); padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; z-index: 900; }
-        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 15px; display: block; }
+        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 15px; }
         .tab-link.active { color: var(--cyan); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
+    <!-- 1. Login Overlay -->
     <div id="login-overlay">
-        <img src="logo.png" class="logo-img" onerror="this.style.display='none'">
+        <h2 style="color:white; margin-bottom:20px;">Willkommen in der Lounge</h2>
         <input type="email" id="email-input" placeholder="E-Mail Adresse">
         <button onclick="login()">Punkte-Konto öffnen</button>
     </div>
 
+    <!-- 2. Birthday Setup Overlay -->
+    <div id="birthday-setup">
+        <h2 style="color:white; margin-bottom:10px;">Geburtstags-Bonus!</h2>
+        <p style="color:#aaa; margin-bottom:20px; text-align:center;">Sag uns dein Geburtsdatum für 50 VIP Pointz geschenkt.</p>
+        <input type="date" id="birth-date-input">
+        <button onclick="saveBirthday()">Geburtsdatum speichern</button>
+    </div>
+
+    <!-- 3. Hauptinhalt -->
     <div class="top-nav">
-        <img src="logo.png" class="nav-logo" onerror="this.style.display='none'">
         <div style="color:var(--cyan); font-weight:bold;" id="profile-text"></div>
+        <button onclick="logout()" style="width: auto; padding: 5px 10px; font-size: 10px; background: #333; color: white;">Abmelden</button>
     </div>
 
     <div class="content">
@@ -51,6 +61,7 @@
         </div>
     </div>
 
+    <!-- 4. Navigation -->
     <div class="tab-bar">
         <a href="index.html" class="tab-link active">🏠</a>
         <a href="karte.html" class="tab-link">🔍</a>
@@ -60,32 +71,10 @@
 </div>
 
 <script>
-    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
+    // --- KONFIGURATION ---
+    const sb = supabase.createClient('URL', 'KEY'); 
 
-    async function checkBirthdayBonus(email, currentPoints, lastYear) {
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        
-        if (lastYear === currentYear) return; // Bonus bereits erhalten
-
-        const { data: userData } = await sb.from('vip_guests').select('birth_date').eq('email', email).single();
-        if (!userData || !userData.birth_date) return;
-
-        const birthDate = new Date(userData.birth_date);
-        
-        // Prüfen: Tag und Monat
-        if (today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()) {
-            const newPoints = currentPoints + 50;
-            await sb.from('vip_guests').update({ 
-                points: newPoints, 
-                last_birthday_bonus: currentYear 
-            }).eq('email', email);
-            
-            alert("🎉 Happy Birthday! Wir haben dir 50 VIP Pointz geschenkt!");
-            location.reload();
-        }
-    }
-
+    // --- LOGIK ---
     async function login() {
         const email = document.getElementById('email-input').value.trim();
         if(!email) return alert("E-Mail fehlt!");
@@ -94,13 +83,54 @@
         if(error || data.length === 0) await sb.from('vip_guests').insert([{ email, points: 0 }]);
         
         localStorage.setItem('midus_user', email);
+        checkProfile(email);
+    }
+
+    async function checkProfile(email) {
+        const { data } = await sb.from('vip_guests').select('birth_date').eq('email', email).single();
+        if (data && !data.birth_date) {
+            document.getElementById('birthday-setup').style.display = 'flex';
+            document.getElementById('login-overlay').style.display = 'none';
+        } else {
+            location.reload();
+        }
+    }
+
+    async function saveBirthday() {
+        const birthDate = document.getElementById('birth-date-input').value;
+        const email = localStorage.getItem('midus_user');
+        if(!birthDate) return alert("Bitte Datum wählen!");
+        await sb.from('vip_guests').update({ birth_date: birthDate }).eq('email', email);
         location.reload();
     }
 
+    async function checkBirthdayBonus(email, currentPoints, lastYear) {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        if (lastYear === currentYear) return;
+
+        const { data } = await sb.from('vip_guests').select('birth_date').eq('email', email).single();
+        if (!data || !data.birth_date) return;
+
+        const birthDate = new Date(data.birth_date);
+        if (today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()) {
+            const newPoints = currentPoints + 50;
+            await sb.from('vip_guests').update({ points: newPoints, last_birthday_bonus: currentYear }).eq('email', email);
+            alert("🎉 Alles Gute zum Geburtstag! 50 VIP Pointz gutgeschrieben!");
+            location.reload();
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('midus_user');
+        location.reload();
+    }
+
+    // --- INITIALISIERUNG ---
     const userEmail = localStorage.getItem('midus_user');
     if(userEmail) {
         document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('profile-text').innerText = userEmail[0].toUpperCase();
+        document.getElementById('profile-text').innerText = userEmail;
         
         sb.from('vip_guests').select('points, last_birthday_bonus').eq('email', userEmail).single().then(res => {
             if(res.data) {
