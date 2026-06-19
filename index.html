@@ -6,31 +6,27 @@
     <title>Midus Lounge</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg-dark: #050505;
-            --panel-bg: #151515;
-            --cyan: #00d2ff;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        :root { --bg-dark: #050505; --cyan: #00d2ff; --panel-bg: #151515; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         
         /* Login Overlay */
-        #login-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 500; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .logo-img { height: 500px; max-width: 90%; margin-bottom: 30px; object-fit: contain; } /* Doppelt so groß */
-        input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: white; text-align: center; font-size: 16px; }
-        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+        #login-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .logo-img { height: 250px; margin-bottom: 30px; object-fit: contain; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #111; color: white; border: 1px solid #333; text-align: center; }
+        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; }
 
-        /* App Content */
+        /* Content */
         .top-nav { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { height: 200px; max-width: 60%; object-fit: contain; } /* Doppelt so groß */
-        .content { padding: 0 20px; flex-grow: 1; overflow-y: auto; }
-        .loyalty-card { background: var(--panel-bg); border-radius: 24px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(0, 210, 255, 0.2); }
-        .loyalty-points { color: var(--cyan); font-size: 24px; font-weight: 900; }
+        .nav-logo { height: 100px; object-fit: contain; }
+        .content { padding: 0 20px; flex-grow: 1; }
+        .loyalty-card { background: var(--panel-bg); padding: 25px; border-radius: 24px; border: 1px solid rgba(0, 210, 255, 0.2); color: white; }
         
-        .tab-bar { margin-top: auto; background-color: var(--panel-bg); padding: 20px; display: flex; justify-content: space-around; border-top: 1px solid #222; }
-        .tab-icon { color: #888; font-size: 24px; }
-        .tab-icon.active { color: var(--cyan); }
+        /* Footer Navigation - JETZT KLICKBAR */
+        .tab-bar { background-color: var(--panel-bg); padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; z-index: 900; }
+        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 20px; display: block; }
+        .tab-link.active { color: var(--cyan); }
     </style>
 </head>
 <body>
@@ -50,14 +46,14 @@
     <div class="content">
         <div class="loyalty-card">
             <p style="color:#888;">VIP Pointz</p>
-            <h2 id="points-display" class="loyalty-points">0 Pkt</h2>
+            <h2 id="points-display" style="color:var(--cyan);">0 Pkt</h2>
         </div>
     </div>
 
     <div class="tab-bar">
-        <div class="tab-icon active">🏠</div>
-        <div class="tab-icon">🔍</div>
-        <div class="tab-icon">🎟️</div>
+        <a href="index.html" class="tab-link active">🏠</a>
+        <a href="karte.html" class="tab-link">🔍</a>
+        <a href="events.html" class="tab-link">🎟️</a>
     </div>
 </div>
 
@@ -66,9 +62,11 @@
 
     async function login() {
         const email = document.getElementById('email-input').value.trim();
-        if(!email) return alert("E-Mail!");
+        if(!email) return alert("E-Mail fehlt!");
+        
         const { data } = await sb.from('vip_guests').select('*').eq('email', email);
         if(data.length === 0) await sb.from('vip_guests').insert([{ email, points: 0 }]);
+        
         localStorage.setItem('midus_user', email);
         location.reload();
     }
@@ -77,6 +75,7 @@
     if(user) {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('profile-text').innerText = user[0].toUpperCase();
+        
         sb.from('vip_guests').select('points').eq('email', user).single().then(res => {
             if(res.data) document.getElementById('points-display').innerText = res.data.points + " Pkt";
         });
