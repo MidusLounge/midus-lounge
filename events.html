@@ -4,23 +4,18 @@
     <meta charset="UTF-8">
     <title>Events - Midus Lounge</title>
     <style>
-        :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        :root { --bg-dark: #050505; --cyan: #00d2ff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        
-        /* Fester App-Rahmen */
         .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         
         .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; color: var(--cyan); }
-        
-        /* WICHTIG: Das sorgt dafür, dass nur hier gescrollt wird */
         .content { padding: 0 20px; flex-grow: 1; overflow-y: auto; }
         
-        .event-card { background: var(--panel-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--cyan); color: white; }
-        .event-card h3 { font-size: 16px; margin-bottom: 5px; }
-        .event-card p { font-size: 13px; color: #aaa; }
+        /* Damit die Instagram-Embeds in die App passen */
+        .instagram-embed { margin-bottom: 20px; }
         
-        .tab-bar { background-color: var(--panel-bg); padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; flex-shrink: 0; }
+        .tab-bar { background-color: #151515; padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; flex-shrink: 0; }
         .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 20px; }
         .tab-link.active { color: var(--cyan); }
     </style>
@@ -31,19 +26,11 @@
     <div class="header">Events</div>
     
     <div class="content">
-        <div class="event-card">
-            <h3>Bar Quiz</h3>
-            <p>Jeden Donnerstag | 19:00 Uhr</p>
+        <!-- HIER KOMMT DEIN INSTAGRAM CODE REIN -->
+        <div class="instagram-embed">
+            <!-- Kopiere den Code von Instagram hierhin -->
         </div>
-        <div class="event-card">
-            <h3>Schlager Remix Night</h3>
-            <p>13. Mai | Midus Lounge</p>
-        </div>
-        <div class="event-card">
-            <h3>Beach & Beats</h3>
-            <p>Sondertermin in Amaliendorf</p>
-        </div>
-        </div>
+    </div>
 
     <div class="tab-bar">
         <a href="index.html" class="tab-link">🏠</a>
@@ -51,5 +38,8 @@
         <a href="events.html" class="tab-link active">🎟️</a>
     </div>
 </div>
+
+<!-- Instagram Script (wichtig, damit die Embeds geladen werden) -->
+<script async src="//www.instagram.com/embed.js"></script>
 </body>
 </html>
