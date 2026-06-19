@@ -10,9 +10,6 @@
             --bg-dark: #050505;
             --panel-bg: #151515;
             --cyan: #00d2ff;
-            --magenta: #ff007f;
-            --text-light: #ffffff;
-            --text-dim: #888888;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -20,20 +17,20 @@
         
         /* Login Overlay */
         #login-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 500; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .logo-img { height: 180px; margin-bottom: 25px; } /* Größeres Logo hier */
+        .logo-img { height: 250px; margin-bottom: 30px; object-fit: contain; } /* Hier die 250px */
         input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: white; text-align: center; font-size: 16px; }
         button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
 
         /* App Content */
         .top-nav { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { height: 80px; } /* Größeres Logo hier */
+        .nav-logo { height: 100px; object-fit: contain; } /* Hier die 100px für oben */
         .content { padding: 0 20px; flex-grow: 1; overflow-y: auto; }
         .loyalty-card { background: var(--panel-bg); border-radius: 24px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(0, 210, 255, 0.2); }
         .loyalty-points { color: var(--cyan); font-size: 24px; font-weight: 900; }
         
         .tab-bar { margin-top: auto; background-color: var(--panel-bg); padding: 20px; display: flex; justify-content: space-around; border-top: 1px solid #222; }
-        .tab-icon { color: var(--text-dim); font-size: 24px; }
-        .tab-icon.active { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+        .tab-icon { color: #888; font-size: 24px; }
+        .tab-icon.active { color: var(--cyan); }
     </style>
 </head>
 <body>
@@ -52,7 +49,7 @@
 
     <div class="content">
         <div class="loyalty-card">
-            <p style="color:var(--text-dim);">VIP Pointz</p>
+            <p style="color:#888;">VIP Pointz</p>
             <h2 id="points-display" class="loyalty-points">0 Pkt</h2>
         </div>
     </div>
