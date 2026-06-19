@@ -3,328 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midus Lounge - Interaktive Karte</title>
+    <title>Speisekarte - Midus Lounge</title>
     <style>
-        :root {
-            --bg-dark: #050505;
-            --panel-bg: #151515;
-            --cyan: #00d2ff;
-            --magenta: #ff007f;
-            --text-light: #ffffff;
-            --text-dim: #888888;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: #222;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .app-container {
-            width: 375px;
-            height: 812px;
-            background-color: var(--bg-dark);
-            border-radius: 40px;
-            border: 8px solid #333;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
-
-        .top-nav {
-            padding: 40px 20px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-title {
-            color: var(--text-light);
-            font-size: 26px;
-            font-weight: 800;
-            letter-spacing: 1px;
-        }
+        :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; --text-light: #ffffff; --text-dim: #888888; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #222; display: flex; justify-content: center; min-height: 100vh; color: white; }
+        .app-container { width: 375px; min-height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; display: flex; flex-direction: column; position: relative; }
         
-        .btn-filter-icon {
-            background: var(--panel-bg);
-            border: 1px solid #333;
-            color: var(--text-light);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .filter-scroll {
-            display: flex;
-            overflow-x: auto;
-            padding: 0 20px 15px;
-            gap: 10px;
-            scrollbar-width: none;
-        }
+        .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; color: var(--cyan); }
+        .content { padding: 0 20px; flex-grow: 1; overflow-y: auto; }
+        .menu-item { background: var(--panel-bg); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         
-        .filter-scroll::-webkit-scrollbar { display: none; }
-
-        .filter-tag {
-            background: transparent;
-            color: var(--text-dim);
-            border: 1px solid #444;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 13px;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: 0.3s;
-            user-select: none; 
-        }
-
-        .filter-tag.active {
-            color: var(--cyan);
-            border-color: var(--cyan);
-            background-color: rgba(0, 210, 255, 0.05);
-            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
-            text-shadow: 0 0 5px var(--cyan);
-        }
-
-        .drink-list {
-            padding: 10px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            overflow-y: auto;
-            height: calc(100% - 210px);
-            scrollbar-width: none;
-        }
-
-        .drink-list::-webkit-scrollbar { display: none; }
-
-        .drink-card {
-            background-color: var(--panel-bg);
-            border-radius: 16px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s;
-        }
-
-        .drink-img {
-            width: 65px;
-            height: 65px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #111, #1a1a1a);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            border: 1px solid #333;
-        }
-
-        .drink-img.cyan-glow { 
-            box-shadow: inset 0 0 15px rgba(0, 210, 255, 0.1); 
-            border-color: rgba(0, 210, 255, 0.2);
-        }
-        
-        .drink-img.magenta-glow { 
-            box-shadow: inset 0 0 15px rgba(255, 0, 127, 0.1); 
-            border-color: rgba(255, 0, 127, 0.2);
-        }
-
-        .drink-info {
-            flex-grow: 1;
-            margin-left: 15px;
-        }
-
-        .drink-name {
-            color: var(--text-light);
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }
-
-        .drink-tags {
-            font-size: 11px;
-            color: var(--cyan);
-            opacity: 0.8;
-            margin-bottom: 2px;
-        }
-
-        .drink-price {
-            color: var(--magenta);
-            font-weight: bold;
-            font-size: 15px;
-            text-shadow: 0 0 5px rgba(255,0,127,0.3);
-            text-align: right;
-            padding-left: 10px;
-        }
-
-        /* Verlinkte Tab Bar (3 Icons) */
-        .tab-bar {
-            margin-top: auto;
-            background-color: var(--panel-bg);
-            padding: 20px;
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid #222;
-        }
-
-        .tab-bar a {
-            text-decoration: none;
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .tab-icon {
-            color: var(--text-dim);
-            font-size: 24px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        .tab-icon.active {
-            color: var(--cyan);
-            text-shadow: 0 0 10px var(--cyan);
-        }
-
+        .tab-bar { margin-top: auto; background-color: var(--panel-bg); padding: 20px; display: flex; justify-content: space-around; border-top: 1px solid #222; }
+        .tab-icon { color: #888; font-size: 24px; }
+        .tab-icon.active { color: var(--cyan); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="top-nav">
-        <div class="page-title">Drinks</div>
-        <div class="btn-filter-icon">🎲</div>
-    </div>
-
-    <div class="filter-scroll">
-        <div class="filter-tag active">Alle</div>
-        <div class="filter-tag">Fruchtig</div>
-        <div class="filter-tag">Stark</div>
-        <div class="filter-tag">Sauer</div>
-        <div class="filter-tag">Alkoholfrei</div>
-    </div>
-
-    <div class="drink-list" id="live-drink-list">
-        <div style="text-align: center; color: var(--cyan); padding: 20px; font-size: 14px;">Lade aktuelle Karte...</div>
+    <div class="header">Unsere Karte</div>
+    <div class="content">
+        <div class="menu-item"><div>Coco Sunset</div><div>8.50 €</div></div>
+        <div class="menu-item"><div>Electric Lagoon</div><div>9.00 €</div></div>
+        <div class="menu-item"><div>Hawienero Rum</div><div>7.50 €</div></div>
+        <div class="menu-item"><div>Espolon Sour</div><div>9.50 €</div></div>
     </div>
 
     <div class="tab-bar">
-        <a href="index.html">
-            <div class="tab-icon">🏠</div>
-        </a>
-        <a href="karte.html">
-            <div class="tab-icon active">🔍</div>
-        </a>
-        <a href="events.html">
-            <div class="tab-icon">🎟️</div>
-        </a>
+        <a href="index.html" style="text-decoration:none;"><div class="tab-icon">🏠</div></a>
+        <div class="tab-icon active">🔍</div>
+        <a href="events.html" style="text-decoration:none;"><div class="tab-icon">🎟️</div></a>
     </div>
 </div>
-
-<script>
-    const googleSheetsLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSDyF6B_H_r42m8MvEUoR3zZFZTFWJ-xExhHvd6pKe552ib5uKRBVfCJZm89GEI8onSAW-sQ6m7N6mA/pub?gid=0&single=true&output=csv";
-    let alleDrinks = [];
-
-    async function ladeDrinks() {
-        try {
-            const response = await fetch(googleSheetsLink);
-            if (!response.ok) throw new Error("Netzwerkfehler");
-            
-            const data = await response.text();
-            const cleanData = data.replace(/"/g, ''); 
-            const rows = cleanData.replace(/\r/g, '').split('\n').slice(1); 
-            
-            alleDrinks = []; 
-
-            rows.forEach(row => {
-                if (!row.trim()) return; 
-                
-                const columns = row.split(',');
-                if(columns.length < 5) return;
-
-                const name = columns[1] ? columns[1].trim() : '';
-                const kategorie = columns[2] ? columns[2].trim() : ''; 
-                const zutaten = columns[3] ? columns[3].trim() : '';
-                let preis = columns[4] ? columns[4].trim() : '';
-                const aktiv = columns[6] ? columns[6].trim().toUpperCase() : 'JA';
-
-                if (aktiv === 'JA' && name !== '') {
-                    if(preis.includes('.')) preis = preis.replace('.', ',');
-                    alleDrinks.push({ name, kategorie, zutaten, preis });
-                }
-            });
-
-            zeigeDrinks('Alle');
-            aktiviereFilterButtons();
-
-        } catch (error) {
-            console.error("Fehlerdetails:", error);
-            document.getElementById('live-drink-list').innerHTML = 
-                '<div style="text-align: center; color: var(--magenta); padding: 20px;">Verbindung zur Karte fehlgeschlagen. (Ggfs. über Netlify aufrufen).</div>';
-        }
-    }
-
-    function zeigeDrinks(filterKategorie) {
-        const drinkList = document.getElementById('live-drink-list');
-        drinkList.innerHTML = ''; 
-        let counter = 0;
-
-        alleDrinks.forEach(drink => {
-            if (filterKategorie === 'Alle' || drink.kategorie.toLowerCase() === filterKategorie.toLowerCase()) {
-                const glowClass = counter % 2 === 0 ? 'cyan-glow' : 'magenta-glow';
-                const icon = counter % 2 === 0 ? '🍹' : '🥃';
-
-                const cardHTML = `
-                    <div class="drink-card">
-                        <div class="drink-img ${glowClass}">${icon}</div>
-                        <div class="drink-info">
-                            <div class="drink-name">${drink.name}</div>
-                            <div class="drink-tags">${drink.zutaten}</div>
-                        </div>
-                        <div class="drink-price">${drink.preis} €</div>
-                    </div>
-                `;
-                drinkList.innerHTML += cardHTML;
-                counter++;
-            }
-        });
-
-        if(counter === 0) {
-            drinkList.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 20px;">Aktuell keine Drinks in dieser Kategorie.</div>';
-        }
-    }
-
-    function aktiviereFilterButtons() {
-        const filterTags = document.querySelectorAll('.filter-tag');
-        filterTags.forEach(tag => {
-            tag.addEventListener('click', function() {
-                filterTags.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                zeigeDrinks(this.innerText);
-            });
-        });
-    }
-
-    ladeDrinks();
-</script>
-
 </body>
 </html>
