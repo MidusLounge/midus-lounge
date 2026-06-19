@@ -1,71 +1,34 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>Scanner - Midus Lounge</title>
-    <!-- Supabase & Scanner Bibliotheken -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        :root { --bg-dark: #050505; --cyan: #00d2ff; }
-        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin:0; }
-        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; }
-        .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; color: var(--cyan); }
-        #reader { width: 100%; height: 400px; padding: 10px; }
-        .content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
-        .tab-bar { background-color: #151515; padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
-        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 5px; }
-        .tab-link.active { color: var(--cyan); }
-    </style>
-</head>
-<body>
-
-<div class="app-container">
-    <div class="header">VIP Scanner</div>
-    <div class="content">
-        <div id="reader"></div>
-        <p id="status" style="color: #aaa; margin-top: 20px; text-align: center;">Kamera bereit...</p>
-    </div>
-
-    <div class="tab-bar">
-        <a href="index.html" class="tab-link">🏠</a>
-        <a href="karte.html" class="tab-link">🔍</a>
-        <a href="scanner.html" class="tab-link active">📸</a>
-        <a href="events.html" class="tab-link">🎟️</a>
-    </div>
-</div>
-
 <script>
-    // Supabase Setup
-    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
+    const sb = supabase.createClient('URL', 'KEY'); // Hier deine Daten lassen
 
     const html5QrCode = new Html5Qrcode("reader");
+    const userEmail = localStorage.getItem('midus_user'); // Wer scannt gerade?
 
     html5QrCode.start(
         { facingMode: "environment" }, 
         { fps: 10, qrbox: 250 },
-        async (decodedText) => {
-            // STOPPEN nach dem Scan, damit es nicht 100x auslöst
+        async (billCode) => {
             html5QrCode.stop();
-            document.getElementById('status').innerText = "Verarbeite...";
+            document.getElementById('status').innerText = "Prüfe Rechnung...";
 
-            // 1. User suchen
-            const { data, error } = await sb.from('vip_guests').select('points').eq('email', decodedText).single();
-
-            if (error) {
-                alert("User nicht gefunden: " + decodedText);
-            } else {
-                // 2. Punkte erhöhen (z.B. +10 Punkte)
-                const newPoints = (data.points || 0) + 10;
-                await sb.from('vip_guests').update({ points: newPoints }).eq('email', decodedText);
-                alert("Erfolg! 10 Punkte hinzugefügt. Neuer Stand: " + newPoints);
-            }
+            // 1. Prüfen, ob der Code schon benutzt wurde
+            const { data: existing } = await sb.from('transactions').select('*').eq('bill_code', billCode).single();
             
-            // Zurück zur Startseite nach dem Scan
+            if (existing) {
+                alert("Dieser QR-Code wurde bereits eingelöst!");
+            } else {
+                // 2. Transaktion speichern (verriegeln)
+                await sb.from('transactions').insert([{ bill_code: billCode, user_email: userEmail }]);
+                
+                // 3. Punkte beim User erhöhen
+                const { data: user } = await sb.from('vip_guests').select('points').eq('email', userEmail).single();
+                const newPoints = (user.points || 0) + 10;
+                await sb.from('vip_guests').update({ points: newPoints }).eq('email', userEmail);
+                
+                alert("Erfolg! 10 Punkte gutgeschrieben.");
+            }
             window.location.href = "index.html";
         },
-        (errorMessage) => { /* Fehler ignorieren, passiert beim Suchen */ }
-    ).catch(err => { console.error(err); });
+        (err) => {}
+    );
 </script>
-</body>
-</html>
