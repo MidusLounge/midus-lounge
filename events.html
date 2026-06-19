@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midus Lounge - Events</title>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --panel-bg: #151515;
+            --cyan: #00d2ff;
+            --magenta: #ff007f;
+            --text-light: #ffffff;
+            --text-dim: #888888;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+        .top-nav { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { color: var(--text-light); font-size: 26px; font-weight: 800; letter-spacing: 1px; }
+
+        .content { padding: 0 20px; flex-grow: 1; overflow-y: auto; scrollbar-width: none; }
+        .content::-webkit-scrollbar { display: none; }
+
+        /* Event Cards */
+        .event-card {
+            background: var(--panel-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #222;
+            transition: 0.3s;
+        }
+
+        .event-img-placeholder {
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            border-bottom: 2px solid var(--magenta);
+            position: relative;
+        }
+
+        .event-date-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--magenta);
+            color: var(--text-light);
+            padding: 5px 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255,0,127,0.3);
+        }
+
+        .date-day { font-size: 18px; color: var(--magenta); }
+        .date-month { font-size: 10px; text-transform: uppercase; }
+
+        .event-info { padding: 15px; }
+        .event-title { color: var(--text-light); font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .event-desc { color: var(--text-dim); font-size: 13px; line-height: 1.4; margin-bottom: 15px; }
+
+        .btn-rsvp {
+            width: 100%;
+            background: transparent;
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .btn-rsvp:active { background: rgba(0,210,255,0.1); }
+
+        /* Verlinkte Tab Bar (3 Icons) */
+        .tab-bar { margin-top: auto; background-color: var(--panel-bg); padding: 20px; display: flex; justify-content: space-around; border-top: 1px solid #222; }
+        .tab-bar a { text-decoration: none; flex-grow: 1; display: flex; justify-content: center; -webkit-tap-highlight-color: transparent; }
+        .tab-icon { color: var(--text-dim); font-size: 24px; transition: 0.3s; }
+        .tab-icon.active { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="top-nav">
+        <div class="page-title">Events</div>
+    </div>
+
+    <div class="content">
+        <div class="event-card">
+            <div class="event-img-placeholder" style="border-color: var(--cyan);">
+                🎧
+                <div class="event-date-badge" style="border-color: var(--cyan);">
+                    <div class="date-day" style="color: var(--cyan);">24</div>
+                    <div class="date-month">JUN</div>
+                </div>
+            </div>
+            <div class="event-info">
+                <div class="event-title">Grand Opening: Lounge Vibes</div>
+                <div class="event-desc">Wir feiern das Rebranding in Schrems! Live DJ Set, Welcome Shots und doppelte VIP Pointz auf alle Cocktails.</div>
+                <button class="btn-rsvp">VIP Gästeliste</button>
+            </div>
+        </div>
+
+        <div class="event-card">
+            <div class="event-img-placeholder">
+                🍸
+                <div class="event-date-badge">
+                    <div class="date-day">02</div>
+                    <div class="date-month">JUL</div>
+                </div>
+            </div>
+            <div class="event-info">
+                <div class="event-title">Neon Cocktail Night</div>
+                <div class="event-desc">Special Drink Menü für eine Nacht. Exklusive Kreationen, die im Schwarzlicht leuchten.</div>
+                <button class="btn-rsvp" style="color: var(--magenta); border-color: var(--magenta);">Tisch reservieren</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <a href="index.html">
+            <div class="tab-icon">🏠</div>
+        </a>
+        <a href="karte.html">
+            <div class="tab-icon">🔍</div>
+        </a>
+        <a href="events.html">
+            <div class="tab-icon active">🎟️</div>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

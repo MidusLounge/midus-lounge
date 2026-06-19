@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Midus Lounge</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { width: 320px; background: #222; padding: 25px; border-radius: 20px; text-align: center; }
+        .logo-box { width: 150px; height: 150px; margin: 0 auto 20px; background: #333; display: flex; align-items: center; justify-content: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #00d2ff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #status { margin-top: 15px; font-size: 12px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-box">
+        <img src="logo.png" style="width:100%;" onerror="this.style.display='none';">
+    </div>
+    
+    <h2>Midus Lounge</h2>
+    <input type="email" id="email" placeholder="E-Mail Adresse">
+    <button onclick="login()">Punkte-Konto öffnen</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    // Initialisierung des Clients (Variable heißt jetzt 'sb')
+    let sb;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        try {
+            sb = supabase.createClient(
+                'https://bbtjimaixtekzejoslfw.supabase.co', 
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY'
+            );
+            document.getElementById('status').innerText = "System bereit.";
+        } catch (e) {
+            document.getElementById('status').innerText = "Fehler: " + e.message;
+        }
+    });
+
+    async function login() {
+        const email = document.getElementById('email').value.trim();
+        if(!email) return alert("Bitte E-Mail eingeben!");
+        
+        document.getElementById('status').innerText = "Verbinde...";
+
+        try {
+            // Prüfung auf Nutzer
+            const { data, error } = await sb.from('vip_guests').select('*').eq('email', email);
+            
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                alert("Willkommen zurück! Punkte: " + data[0].points);
+            } else {
+                // Nutzer anlegen
+                await sb.from('vip_guests').insert([{ email: email, points: 0 }]);
+                alert("Neues Konto erstellt!");
+            }
+            document.getElementById('status').innerText = "Erfolgreich!";
+        } catch (err) {
+            document.getElementById('status').innerText = "Fehler: " + err.message;
+        }
+    }
+</script>
+</body>
+</html>
