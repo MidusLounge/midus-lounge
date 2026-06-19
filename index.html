@@ -2,69 +2,86 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Midus Lounge</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #111; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { width: 320px; background: #222; padding: 25px; border-radius: 20px; text-align: center; }
-        .logo-box { width: 150px; height: 150px; margin: 0 auto 20px; background: #333; display: flex; align-items: center; justify-content: center; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #00d2ff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #status { margin-top: 15px; font-size: 12px; color: #888; }
+        :root {
+            --bg-dark: #050505;
+            --panel-bg: #151515;
+            --cyan: #00d2ff;
+            --magenta: #ff007f;
+            --text-light: #ffffff;
+            --text-dim: #888888;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        
+        /* Login Overlay */
+        #login-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 500; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .logo-img { height: 120px; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: white; text-align: center; font-size: 16px; }
+        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+
+        /* App Content */
+        .top-nav { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .content { padding: 0 20px; flex-grow: 1; overflow-y: auto; }
+        .loyalty-card { background: var(--panel-bg); border-radius: 24px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(0, 210, 255, 0.2); }
+        .loyalty-points { color: var(--cyan); font-size: 24px; font-weight: 900; }
+        
+        .tab-bar { margin-top: auto; background-color: var(--panel-bg); padding: 20px; display: flex; justify-content: space-around; border-top: 1px solid #222; }
+        .tab-icon { color: var(--text-dim); font-size: 24px; }
+        .tab-icon.active { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="logo-box">
-        <img src="logo.png" style="width:100%;" onerror="this.style.display='none';">
+<div class="app-container">
+    <div id="login-overlay">
+        <img src="logo.png" class="logo-img" onerror="this.style.display='none'">
+        <input type="email" id="email-input" placeholder="E-Mail Adresse">
+        <button onclick="login()">Punkte-Konto öffnen</button>
     </div>
-    
-    <h2>Midus Lounge</h2>
-    <input type="email" id="email" placeholder="E-Mail Adresse">
-    <button onclick="login()">Punkte-Konto öffnen</button>
-    <div id="status"></div>
+
+    <div class="top-nav">
+        <img src="logo.png" style="height:50px;" onerror="this.style.display='none'">
+        <div style="color:var(--cyan); font-weight:bold;" id="profile-text"></div>
+    </div>
+
+    <div class="content">
+        <div class="loyalty-card">
+            <p style="color:var(--text-dim);">VIP Pointz</p>
+            <h2 id="points-display" class="loyalty-points">0 Pkt</h2>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-icon active">🏠</div>
+        <div class="tab-icon">🔍</div>
+        <div class="tab-icon">🎟️</div>
+    </div>
 </div>
 
 <script>
-    // Initialisierung des Clients (Variable heißt jetzt 'sb')
-    let sb;
-
-    window.addEventListener('DOMContentLoaded', () => {
-        try {
-            sb = supabase.createClient(
-                'https://bbtjimaixtekzejoslfw.supabase.co', 
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY'
-            );
-            document.getElementById('status').innerText = "System bereit.";
-        } catch (e) {
-            document.getElementById('status').innerText = "Fehler: " + e.message;
-        }
-    });
+    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
 
     async function login() {
-        const email = document.getElementById('email').value.trim();
-        if(!email) return alert("Bitte E-Mail eingeben!");
-        
-        document.getElementById('status').innerText = "Verbinde...";
+        const email = document.getElementById('email-input').value.trim();
+        if(!email) return alert("E-Mail!");
+        const { data } = await sb.from('vip_guests').select('*').eq('email', email);
+        if(data.length === 0) await sb.from('vip_guests').insert([{ email, points: 0 }]);
+        localStorage.setItem('midus_user', email);
+        location.reload();
+    }
 
-        try {
-            // Prüfung auf Nutzer
-            const { data, error } = await sb.from('vip_guests').select('*').eq('email', email);
-            
-            if (error) throw error;
-
-            if (data && data.length > 0) {
-                alert("Willkommen zurück! Punkte: " + data[0].points);
-            } else {
-                // Nutzer anlegen
-                await sb.from('vip_guests').insert([{ email: email, points: 0 }]);
-                alert("Neues Konto erstellt!");
-            }
-            document.getElementById('status').innerText = "Erfolgreich!";
-        } catch (err) {
-            document.getElementById('status').innerText = "Fehler: " + err.message;
-        }
+    const user = localStorage.getItem('midus_user');
+    if(user) {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('profile-text').innerText = user[0].toUpperCase();
+        sb.from('vip_guests').select('points').eq('email', user).single().then(res => {
+            if(res.data) document.getElementById('points-display').innerText = res.data.points + " Pkt";
+        });
     }
 </script>
 </body>
