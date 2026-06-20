@@ -2,18 +2,20 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Events - Midus Lounge</title>
     <style>
-        /* (Gleiches CSS) */
-        :root { --bg-dark: #050505; --cyan: #00d2ff; }
-        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .app-container { width: 360px; height: 720px; background-color: var(--bg-dark); border-radius: 30px; border: 4px solid #333; overflow: hidden; display: flex; flex-direction: column; }
-        .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); }
-        .content { padding: 20px; flex-grow: 1; display: flex; justify-content: center; align-items: start; }
-        .event-poster { width: 100%; border-radius: 15px; }
-        .tab-bar { background-color: #111; padding: 10px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
-        .tab-link { text-decoration: none; color: #666; font-size: 22px; }
-        .tab-link.active { color: var(--cyan); }
+        :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 420px; height: 100dvh; max-height: 900px; background-color: var(--bg-dark); display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
+        .content { padding: 30px 20px; flex-grow: 1; display: flex; justify-content: center; align-items: start; overflow-y: auto; }
+        .event-poster { width: 100%; max-width: 320px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); }
+        .tab-link { text-decoration: none; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        .tab-link svg { stroke: #555; transition: all 0.3s ease; }
+        .tab-link.active svg { stroke: var(--cyan); filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.6)); }
     </style>
 </head>
 <body>
@@ -23,10 +25,18 @@
         <img src="event.png" class="event-poster" alt="Event" onerror="this.src='https://via.placeholder.com/300x400'">
     </div>
     <div class="tab-bar">
-        <a href="index.html" class="tab-link">🏠</a>
-        <a href="karte.html" class="tab-link">🔍</a>
-        <a href="scanner.html" class="tab-link">📸</a>
-        <a href="events.html" class="tab-link active">🎟️</a>
+        <a href="index.html" class="tab-link">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </a>
+        <a href="karte.html" class="tab-link">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3l-8 11.5V22H10v-7.5L2 3h20z"></path><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+        </a>
+        <a href="scanner.html" class="tab-link">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6v12M9 6v12M12 6v12M15 6v12M19 6v12"></path><path d="M3 8V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-3"></path></svg>
+        </a>
+        <a href="events.html" class="tab-link active">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </a>
     </div>
 </div>
 </body>
