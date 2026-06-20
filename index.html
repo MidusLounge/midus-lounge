@@ -22,7 +22,7 @@
         button { width: 100%; padding: 14px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; color: #000; font-size: 16px; }
         button:disabled { background: #222; color: #555; cursor: not-allowed; }
 
-        #bday-claim-btn { display: none; border: 1px solid var(--pink); background: #151515; color: white; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); animation: pulse-pink 2s infinite; }
+        #bday-claim-btn { display: none; border: 1px solid var(--pink); background: #151515; color: white; margin-bottom: 5px; box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); animation: pulse-pink 2s infinite; }
         @keyframes pulse-pink { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
         
         .header { padding: 40px 20px 20px; display: flex; justify-content: center; border-bottom: 1px solid #111; }
@@ -62,7 +62,7 @@
     </div>
 
     <div id="bday-voucher-overlay">
-        <h1 style="color: var(--pink);">Gratis Cocktail! 🍹</h1>
+        <h1 style="color: var(--pink);">🍹 Gratis Cocktail zum Geburtstag! 🍹</h1>
         <p style="color:#aaa; margin: 20px 0;">Alles Gute! Zeige diesen Bildschirm vor.</p>
         <div class="timer-display" id="bday-timer">05:00</div>
         <button onclick="closeBdayVoucher()">Einlösen bestätigt</button>
@@ -81,7 +81,10 @@
             <p style="color:#888; font-size:14px; text-transform:uppercase;">Dein VIP Status</p>
             <div class="points-text" id="points-display">0 Pointz <span class="points-max">/ 500</span></div>
             <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+            
             <button id="bday-claim-btn" onclick="openBdayVoucher()">🍹 Gratis Drink abholen!</button>
+            <p id="bday-warning" style="font-size: 11px; color: var(--pink); margin-bottom: 15px; display: none;">⚠️ Dieser Gutschein ist ab deinem Geburtstag 1 Woche lang gültig!</p>
+            
             <button id="redeem-btn" onclick="redeemPoints()" disabled>500 Pkt einlösen</button>
             <button onclick="logout()" style="background:transparent; border:1px solid #333; color:#888; margin-top:20px;">Abmelden</button>
         </div>
@@ -147,6 +150,7 @@
 
                     if (diffDays >= 0 && diffDays <= 7 && !localStorage.getItem(lockKey)) {
                         document.getElementById('bday-claim-btn').style.display = 'flex';
+                        document.getElementById('bday-warning').style.display = 'block'; // <-- Schaltet die Warnung synchron dazu
                     }
                 } 
             } 
