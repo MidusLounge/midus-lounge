@@ -7,61 +7,41 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        
-        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
-        
-        /* Overlays */
+        body { background-color: #222; margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; position: relative; }
         #login-overlay, #birthday-setup { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         #birthday-setup { display: none; z-index: 1001; }
-        
         input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #111; color: white; border: 1px solid #333; text-align: center; }
-        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; color: #000; }
-
-        /* Main View */
-        .top-nav { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .content { padding: 0 20px; flex-grow: 1; }
-        .loyalty-card { background: var(--panel-bg); padding: 25px; border-radius: 24px; border: 1px solid rgba(0, 210, 255, 0.2); color: white; }
-        
-        /* Nav */
-        .tab-bar { background-color: var(--panel-bg); padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; z-index: 900; }
-        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 15px; }
-        .tab-link.active { color: var(--cyan); }
+        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; }
+        .content { padding: 40px 20px; }
+        .loyalty-card { background: var(--panel-bg); padding: 25px; border-radius: 24px; border: 1px solid rgba(0, 210, 255, 0.2); color: white; text-align: center; }
+        .tab-bar { background-color: var(--panel-bg); padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; position: absolute; bottom: 0; width: 100%; }
+        .tab-link { text-decoration: none; color: #888; font-size: 24px; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- 1. Login Overlay -->
     <div id="login-overlay">
-        <h2 style="color:white; margin-bottom:20px;">Willkommen in der Lounge</h2>
+        <h2 style="color:white; margin-bottom:20px;">Midus Lounge Login</h2>
         <input type="email" id="email-input" placeholder="E-Mail Adresse">
-        <button onclick="login()">Punkte-Konto öffnen</button>
+        <button onclick="login()">Anmelden</button>
     </div>
 
-    <!-- 2. Birthday Setup Overlay -->
     <div id="birthday-setup">
         <h2 style="color:white; margin-bottom:10px;">Geburtstags-Bonus!</h2>
-        <p style="color:#aaa; margin-bottom:20px; text-align:center;">Sag uns dein Geburtsdatum für 50 VIP Pointz geschenkt.</p>
         <input type="date" id="birth-date-input">
-        <button onclick="saveBirthday()">Geburtsdatum speichern</button>
-    </div>
-
-    <!-- 3. Hauptinhalt -->
-    <div class="top-nav">
-        <div style="color:var(--cyan); font-weight:bold;" id="profile-text"></div>
-        <button onclick="logout()" style="width: auto; padding: 5px 10px; font-size: 10px; background: #333; color: white;">Abmelden</button>
+        <button onclick="saveBirthday()">Speichern</button>
     </div>
 
     <div class="content">
         <div class="loyalty-card">
-            <p style="color:#888;">VIP Pointz</p>
+            <p style="color:#888;">Deine VIP Pointz</p>
             <h2 id="points-display" style="color:var(--cyan);">0 Pkt</h2>
+            <button onclick="logout()" style="margin-top:20px; background:none; border:1px solid #444; color:#666;">Abmelden</button>
         </div>
     </div>
 
-    <!-- 4. Navigation -->
     <div class="tab-bar">
         <a href="index.html" class="tab-link active">🏠</a>
         <a href="karte.html" class="tab-link">🔍</a>
@@ -71,16 +51,28 @@
 </div>
 
 <script>
-    // --- KONFIGURATION ---
-    const sb = supabase.createClient('URL', 'KEY'); 
+    // --- HIER DEINE DATEN EINTRAGEN ---
+    const sb = supabase.createClient('DEINE_URL', 'DEIN_ANON_KEY');
 
-    // --- LOGIK ---
     async function login() {
         const email = document.getElementById('email-input').value.trim();
-        if(!email) return alert("E-Mail fehlt!");
+        if(!email) return alert("E-Mail bitte!");
         
+        console.log("Login-Versuch für:", email);
+        
+        // 1. Prüfen ob User existiert
         const { data, error } = await sb.from('vip_guests').select('*').eq('email', email);
-        if(error || data.length === 0) await sb.from('vip_guests').insert([{ email, points: 0 }]);
+        
+        if (error) {
+            console.error("Datenbank-Fehler:", error);
+            return alert("Fehler beim Verbinden: " + error.message);
+        }
+
+        // 2. Wenn User nicht da, anlegen
+        if (data.length === 0) {
+            const { error: insertErr } = await sb.from('vip_guests').insert([{ email: email, points: 0 }]);
+            if (insertErr) return alert("Fehler beim Anlegen: " + insertErr.message);
+        }
         
         localStorage.setItem('midus_user', email);
         checkProfile(email);
@@ -99,26 +91,9 @@
     async function saveBirthday() {
         const birthDate = document.getElementById('birth-date-input').value;
         const email = localStorage.getItem('midus_user');
-        if(!birthDate) return alert("Bitte Datum wählen!");
+        if(!birthDate) return alert("Datum wählen!");
         await sb.from('vip_guests').update({ birth_date: birthDate }).eq('email', email);
         location.reload();
-    }
-
-    async function checkBirthdayBonus(email, currentPoints, lastYear) {
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        if (lastYear === currentYear) return;
-
-        const { data } = await sb.from('vip_guests').select('birth_date').eq('email', email).single();
-        if (!data || !data.birth_date) return;
-
-        const birthDate = new Date(data.birth_date);
-        if (today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()) {
-            const newPoints = currentPoints + 50;
-            await sb.from('vip_guests').update({ points: newPoints, last_birthday_bonus: currentYear }).eq('email', email);
-            alert("🎉 Alles Gute zum Geburtstag! 50 VIP Pointz gutgeschrieben!");
-            location.reload();
-        }
     }
 
     function logout() {
@@ -126,17 +101,12 @@
         location.reload();
     }
 
-    // --- INITIALISIERUNG ---
+    // Beim Laden: User prüfen
     const userEmail = localStorage.getItem('midus_user');
     if(userEmail) {
         document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('profile-text').innerText = userEmail;
-        
-        sb.from('vip_guests').select('points, last_birthday_bonus').eq('email', userEmail).single().then(res => {
-            if(res.data) {
-                document.getElementById('points-display').innerText = res.data.points + " Pkt";
-                checkBirthdayBonus(userEmail, res.data.points, res.data.last_birthday_bonus);
-            }
+        sb.from('vip_guests').select('points').eq('email', userEmail).single().then(res => {
+            if(res.data) document.getElementById('points-display').innerText = res.data.points + " Pkt";
         });
     }
 </script>
