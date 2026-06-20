@@ -5,37 +5,26 @@
     <title>Events - Midus Lounge</title>
     <style>
         :root { --bg-dark: #050505; --cyan: #00d2ff; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        
-        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
-        
+        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin:0; }
+        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; }
         .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; color: var(--cyan); }
         .content { padding: 20px; flex-grow: 1; display: flex; justify-content: center; align-items: start; }
-        
-        /* Das Bild */
-        .event-poster { width: 100%; border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        
-        .tab-bar { background-color: #151515; padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; flex-shrink: 0; }
-        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 20px; }
+        .event-poster { width: 100%; border-radius: 20px; }
+        .tab-bar { background-color: #151515; padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
+        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 5px; }
         .tab-link.active { color: var(--cyan); }
     </style>
 </head>
 <body>
-
 <div class="app-container">
     <div class="header">Aktuelles Event</div>
-    
     <div class="content">
-        <!-- Wenn du ein Facebook-Event hast, setze den Link hier bei href rein -->
-        <a href="DEIN_FACEBOOK_LINK_HIER" target="_blank">
-            <img src="event.png" class="event-poster" alt="Event Poster" onerror="this.src='https://via.placeholder.com/300x400?text=Kein+Event'">
-        </a>
+        <img src="event.png" class="event-poster" alt="Event" onerror="this.src='https://via.placeholder.com/300x400'">
     </div>
-
     <div class="tab-bar">
         <a href="index.html" class="tab-link">🏠</a>
         <a href="karte.html" class="tab-link">🔍</a>
+        <a href="scanner.html" class="tab-link">📸</a>
         <a href="events.html" class="tab-link active">🎟️</a>
     </div>
 </div>
