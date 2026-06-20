@@ -3,99 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lounge Karte - Midus Lounge</title>
+    <title>Menu - Midus Lounge</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; --pink: #ff007f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        
         body { background-color: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .app-container { width: 100%; max-width: 420px; height: 100dvh; max-height: 900px; background-color: var(--bg-dark); display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        
         .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
+        .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         
-        .content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
-        
-        .menu-category { background: var(--panel-bg); border-radius: 16px; padding: 18px; border: 1px solid #222; }
-        .category-title { color: var(--pink); font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        
-        .menu-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .menu-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .item-info h4 { color: white; font-size: 16px; font-weight: 600; }
-        .item-info p { color: #888; font-size: 12px; margin-top: 2px; }
-        .item-price { color: var(--cyan); font-weight: bold; font-size: 15px; }
+        /* Menu Styling */
+        .menu-item { background: var(--panel-bg); border-radius: 16px; padding: 15px; border: 1px solid #222; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .menu-item img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; }
+        .item-info { flex-grow: 1; }
+        .item-info h4 { color: white; }
+        .item-info p { color: #888; font-size: 12px; }
+        .price { color: var(--cyan); font-weight: bold; }
 
-        /* 5-Tab Bar Navigation */
+        /* Modal */
+        #drink-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--panel-bg); padding: 20px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--cyan); }
+        .modal-content img { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 15px; }
+        
+        /* Tab Bar */
         .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); }
-        .tab-link { text-decoration: none; display: flex; justify-content: center; align-items: center; padding: 8px; width: 20%; }
-        .tab-link svg { stroke: #555; transition: all 0.3s ease; width: 26px; height: 26px; }
+        .tab-link { text-decoration: none; padding: 8px; width: 20%; display: flex; justify-content: center; }
+        .tab-link svg { stroke: #555; width: 26px; height: 26px; }
         .tab-link.active svg { stroke: var(--cyan); filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.6)); }
     </style>
 </head>
 <body>
+
 <div class="app-container">
     <div class="header">Lounge Menu</div>
-    
-    <div class="content">
-        <div class="menu-category">
-            <div class="category-title">🍹 Signature Cocktails</div>
-            <div class="menu-item">
-                <div class="item-info"><h4>Midus Special</h4><p>Vodka, Passionfruit, Lime, Vanilla</p></div>
-                <div class="item-price">€ 11,50</div>
-            </div>
-            <div class="menu-item">
-                <div class="item-info"><h4>Neon Spritz</h4><p>Prosecco, Blue Curaçao, Soda, Mint</p></div>
-                <div class="item-price">€ 8,90</div>
-            </div>
-        </div>
+    <div class="content" id="menu-container">Lädt Menu...</div>
 
-        <div class="menu-category">
-            <div class="category-title">🍸 Premium Gin & Tonic (5cl)</div>
-            <div class="menu-item">
-                <div class="item-info"><h4>Hendrick's Gin</h4><p>mit Thomas Henry Tonic & Gurke</p></div>
-                <div class="item-price">€ 12,00</div>
-            </div>
-            <div class="menu-item">
-                <div class="item-info"><h4>Monkey 47</h4><p>mit Fever-Tree Mediterranean Tonic</p></div>
-                <div class="item-price">€ 13,50</div>
-            </div>
-        </div>
-
-        <div class="menu-category">
-            <div class="category-title">🍾 Bottles & VIP Service</div>
-            <div class="menu-item">
-                <div class="item-info"><h4>Belvedere Vodka 0,7l</h4><p>inkl. 4 Beigetränken nach Wahl</p></div>
-                <div class="item-price">€ 110,00</div>
-            </div>
-            <div class="menu-item">
-                <div class="item-info"><h4>Moët & Chandon Ice 0,7l</h4><p>serviert auf Eis mit frischen Beeren</p></div>
-                <div class="item-price">€ 125,00</div>
-            </div>
+    <div id="drink-modal" onclick="this.style.display='none'">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="m-img" src="">
+            <h2 id="m-title" style="color:white;"></h2>
+            <p id="m-desc" style="color:#aaa;"></p>
+            <button onclick="document.getElementById('drink-modal').style.display='none'">Schließen</button>
         </div>
     </div>
-    
+
     <div class="tab-bar">
-        <a href="index.html" class="tab-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </a>
-        <!-- Tab 2: Karte AKTIV -->
-        <a href="karte.html" class="tab-link active">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3l-8 11.5V22H10v-7.5L2 3h20z"></path><line x1="8" y1="22" x2="16" y2="22"></line></svg>
-        </a>
-        <a href="scanner.html" class="tab-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-3"></path>
-                <rect x="7" y="7" width="4" height="4" rx="0.5"></rect><rect x="13" y="7" width="4" height="4" rx="0.5"></rect><rect x="7" y="13" width="4" height="4" rx="0.5"></rect><rect x="13" y="13" width="4" height="4" rx="0.5"></rect>
-            </svg>
-        </a>
-        <a href="events.html" class="tab-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        </a>
-        <a href="kontakt.html" class="tab-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-            </svg>
-        </a>
+        <a href="index.html" class="tab-link"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></a>
+        <a href="karte.html" class="tab-link active"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3l-8 11.5V22H10v-7.5L2 3h20z"></path><line x1="8" y1="22" x2="16" y2="22"></line></svg></a>
+        <a href="scanner.html" class="tab-link"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-3"></path><rect x="7" y="7" width="4" height="4" rx="0.5"></rect><rect x="13" y="7" width="4" height="4" rx="0.5"></rect><rect x="7" y="13" width="4" height="4" rx="0.5"></rect><rect x="13" y="13" width="4" height="4" rx="0.5"></rect></svg></a>
+        <a href="events.html" class="tab-link"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></a>
+        <a href="kontakt.html" class="tab-link"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></a>
     </div>
 </div>
+
+<script>
+    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
+    
+    async function loadMenu() {
+        const { data } = await sb.from('menu').select('*');
+        const container = document.getElementById('menu-container');
+        container.innerHTML = '';
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'menu-item';
+            div.innerHTML = `<img src="${item.image_url}"><div class="item-info"><h4>${item.name}</h4><p>${item.description}</p></div><div class="price">${item.price}</div>`;
+            div.onclick = () => {
+                document.getElementById('m-title').innerText = item.name;
+                document.getElementById('m-desc').innerText = item.description;
+                document.getElementById('m-img').src = item.image_url;
+                document.getElementById('drink-modal').style.display = 'flex';
+            };
+            container.appendChild(div);
+        });
+    }
+    loadMenu();
+</script>
 </body>
 </html>
