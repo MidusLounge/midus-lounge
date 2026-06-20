@@ -17,7 +17,7 @@
             min-height: 100vh; 
         }
         
-        /* Flexibles Design, das sich an jedes Handy anpasst */
+        /* Flexibles Design */
         .app-container { 
             width: 100%; 
             max-width: 420px; 
@@ -48,7 +48,7 @@
         }
         #birthday-setup { display: none; z-index: 1001; }
         
-        /* Gekürzte und zentrierte Eingabefelder */
+        /* Eingabefelder */
         .input-group {
             width: 80%;
             max-width: 280px;
@@ -79,7 +79,7 @@
             font-size: 16px;
         }
         
-        /* Main View */
+        /* Main View - Header mit großem Logo */
         .header { 
             padding: 40px 20px 20px; 
             display: flex; 
@@ -87,7 +87,13 @@
             align-items: center; 
             border-bottom: 1px solid #111;
         }
-        .header img { max-height: 40px; } /* Kleines Logo oben */
+        
+        .header img { 
+            width: 100%;
+            max-width: 220px; /* Großes Logo auf der Hauptseite */
+            max-height: 120px; 
+            object-fit: contain;
+        }
         
         .content { 
             padding: 30px 20px; 
@@ -116,7 +122,7 @@
             display: flex; 
             justify-content: space-around; 
             border-top: 1px solid #222; 
-            padding-bottom: env(safe-area-inset-bottom, 15px); /* Wichtig für iPhones */
+            padding-bottom: env(safe-area-inset-bottom, 15px);
         }
         .tab-link { text-decoration: none; color: #555; font-size: 24px; padding: 5px; }
         .tab-link.active { color: var(--cyan); }
