@@ -7,18 +7,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .app-container { width: 360px; height: 720px; background-color: var(--bg-dark); border-radius: 30px; border: 4px solid #333; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         #login-overlay, #birthday-setup { position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         #birthday-setup { display: none; z-index: 1001; }
-        input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #111; color: white; border: 1px solid #333; text-align: center; }
-        button { width: 100%; padding: 15px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; color: #000; }
-        .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; color: var(--cyan); }
-        .content { padding: 20px; flex-grow: 1; }
-        .loyalty-card { background: var(--panel-bg); padding: 25px; border-radius: 24px; border: 1px solid rgba(0, 210, 255, 0.2); color: white; text-align: center; }
-        .tab-bar { background-color: var(--panel-bg); padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
-        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 5px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; background: #111; color: white; border: 1px solid #444; text-align: center; }
+        button { width: 100%; padding: 12px; border-radius: 8px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; color: #000; }
+        .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); }
+        .content { padding: 20px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .loyalty-card { width: 100%; background: var(--panel-bg); padding: 20px; border-radius: 20px; border: 1px solid #333; color: white; text-align: center; }
+        .tab-bar { background-color: #111; padding: 10px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
+        .tab-link { text-decoration: none; color: #666; font-size: 22px; }
         .tab-link.active { color: var(--cyan); }
     </style>
 </head>
@@ -26,7 +25,7 @@
 <div class="app-container">
     <div id="login-overlay">
         <h2 style="color:white; margin-bottom:20px;">Midus Lounge</h2>
-        <input type="email" id="email-input" placeholder="E-Mail Adresse">
+        <input type="email" id="email-input" placeholder="E-Mail">
         <button onclick="login()">Anmelden</button>
     </div>
     <div id="birthday-setup">
@@ -38,8 +37,8 @@
     <div class="content">
         <div class="loyalty-card">
             <p style="color:#888;">Deine VIP Pointz</p>
-            <h2 id="points-display" style="color:var(--cyan);">0 Pkt</h2>
-            <button onclick="logout()" style="background:none; border:1px solid #444; color:#666; font-size:12px; margin-top:15px;">Abmelden</button>
+            <h2 id="points-display" style="color:var(--cyan); font-size: 32px; margin: 10px 0;">0 Pkt</h2>
+            <button onclick="logout()" style="background:transparent; border:1px solid #444; color:#666; width:auto; font-size:10px;">Abmelden</button>
         </div>
     </div>
     <div class="tab-bar">
@@ -50,10 +49,7 @@
     </div>
 </div>
 <script>
-    const sb = supabase.createClient(
-        'https://bbtjimaixtekzejoslfw.supabase.co', 
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY'
-    );
+    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
     async function login() {
         const email = document.getElementById('email-input').value.trim();
         if(!email) return;
