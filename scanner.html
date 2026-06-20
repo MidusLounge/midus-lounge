@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; }
+        :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; --pink: #ff007f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         
         body { 
@@ -46,14 +46,14 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
+            overflow-y: auto;
         }
         
-        /* --- NEU: Der Kamera-Bereich mit Overlay --- */
         .scanner-wrapper {
             position: relative;
             width: 100%;
-            height: 350px;
-            margin-top: 20px;
+            height: 280px;
+            margin-top: 10px;
             border-radius: 16px;
             overflow: hidden;
             border: 2px solid #222;
@@ -65,44 +65,22 @@
         .scanner-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; /* Klicks gehen durch das Overlay an die Kamera */
+            pointer-events: none;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10;
         }
 
-        /* Das Quadrat in der Mitte */
-        .qr-target {
-            width: 220px;
-            height: 220px;
-            position: relative;
-        }
+        .qr-target { width: 180px; height: 180px; position: relative; }
 
-        /* Die 4 Neon-Ecken */
-        .corner {
-            position: absolute;
-            width: 40px; height: 40px;
-            border-color: var(--cyan);
-            border-style: solid;
-            border-width: 0;
-            filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.8));
-        }
+        .corner { position: absolute; width: 30px; height: 30px; border-color: var(--cyan); border-style: solid; border-width: 0; filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.8)); }
         .tl { top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 12px; }
         .tr { top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 12px; }
         .bl { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 12px; }
         .br { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 12px; }
 
-        /* Der animierte Neon-Laser */
-        .laser {
-            position: absolute;
-            left: 5%;
-            width: 90%;
-            height: 2px;
-            background: var(--cyan);
-            box-shadow: 0 0 15px 2px var(--cyan);
-            animation: scan-laser 2.5s infinite ease-in-out;
-        }
+        .laser { position: absolute; left: 5%; width: 90%; height: 2px; background: var(--cyan); box-shadow: 0 0 15px 2px var(--cyan); animation: scan-laser 2.5s infinite ease-in-out; }
 
         @keyframes scan-laser {
             0% { top: 0; opacity: 0; }
@@ -110,27 +88,51 @@
             90% { opacity: 1; }
             100% { top: 100%; opacity: 0; }
         }
+
+        #nfc-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            border-radius: 14px;
+            background: #151515;
+            border: 2px solid var(--pink);
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #nfc-btn.scanning {
+            background: var(--pink);
+            color: #000;
+            animation: pulse-pink 1.5s infinite;
+        }
+
+        @keyframes pulse-pink {
+            0% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(255, 0, 127, 1); }
+            100% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.6); }
+        }
         
         #status {
             color: #aaa; 
             font-size: 14px; 
             margin-top: 15px;
             background: #151515;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 20px;
             border: 1px solid #333;
             text-align: center;
             width: 100%;
         }
         
-        .tab-bar { 
-            background-color: var(--panel-bg); 
-            padding: 10px 15px; 
-            display: flex; 
-            justify-content: space-around; 
-            border-top: 1px solid #222; 
-            padding-bottom: env(safe-area-inset-bottom, 15px); 
-        }
+        .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); }
         .tab-link { text-decoration: none; display: flex; justify-content: center; align-items: center; padding: 10px; }
         .tab-link svg { stroke: #555; transition: all 0.3s ease; }
         .tab-link.active svg { stroke: var(--cyan); filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.6)); }
@@ -143,7 +145,6 @@
         
         <div class="scanner-wrapper">
             <div id="reader"></div>
-            
             <div class="scanner-overlay">
                 <div class="qr-target">
                     <div class="corner tl"></div>
@@ -155,7 +156,15 @@
             </div>
         </div>
 
-        <p id="status">Warte auf Kamera...</p>
+        <button id="nfc-btn" onclick="startNFCScan()">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+            💳 VIP NFC Karte scannen
+        </button>
+
+        <p id="status">Warte auf Aktion...</p>
     </div>
     
     <div class="tab-bar">
@@ -170,7 +179,7 @@
                 <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
                 <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
                 <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                <path d="M7 21H5a2 2 0 0 1-2-2v-3"></path>
                 <rect x="7" y="7" width="4" height="4" rx="0.5"></rect>
                 <rect x="13" y="7" width="4" height="4" rx="0.5"></rect>
                 <rect x="7" y="13" width="4" height="4" rx="0.5"></rect>
@@ -193,53 +202,91 @@
     
     html5QrCode.start(
         { facingMode: "environment" }, 
-        { 
-            fps: 15, 
-            qrbox: { width: 220, height: 220 }, // Quadrat exakt so groß wie unser Neon-Rahmen
-            formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
-        }, 
+        { fps: 15, qrbox: { width: 180, height: 180 }, formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] }, 
         async (decodedText) => {
             html5QrCode.stop();
-            document.getElementById('status').innerText = "Berechne Pointz...";
-            document.getElementById('status').style.color = "var(--cyan)";
-            document.getElementById('status').style.borderColor = "var(--cyan)";
-            
-            let email, pointsToAdd;
-            
+            processScannedData(decodedText);
+        }
+    ).then(() => {
+        document.getElementById('status').innerText = "Bereit für QR oder NFC-Scan.";
+    }).catch(err => { console.error(err); });
+
+    async function startNFCScan() {
+        if ('NDEFReader' in window) {
             try {
-                const jsonObj = JSON.parse(decodedText);
+                const ndef = new NDEFReader();
+                await ndef.scan();
+                
+                const btn = document.getElementById('nfc-btn');
+                btn.classList.add('scanning');
+                btn.innerText = "⏳ Karte an Rückseite halten...";
+                document.getElementById('status').innerText = "NFC aktiv. Bitte VIP-Karte an das Handy halten.";
+
+                ndef.onreading = async event => {
+                    try { await html5QrCode.stop(); } catch(e){}
+                    const decoder = new TextDecoder();
+                    for (const record of event.message.records) {
+                        const rawText = decoder.decode(record.data);
+                        processScannedData(rawText);
+                    }
+                };
+            } catch (error) { alert("NFC Fehler: " + error.message); }
+        } else { alert("NFC wird auf diesem Gerät nicht unterstützt. (Nur Android + Chrome)"); }
+    }
+
+    async function processScannedData(textData) {
+        document.getElementById('status').innerText = "Verarbeite VIP Pointz...";
+        document.getElementById('status').style.color = "var(--cyan)";
+        
+        let email, pointsToAdd;
+        const loggedInUser = localStorage.getItem('midus_user');
+
+        // NEU: Logik für den Kellner-QR-Code (Unendlich oft scannbar)
+        if (textData.trim() === "midus_lounge_10") {
+            if (!loggedInUser) {
+                alert("Bitte melde dich zuerst an, um Pointz zu sammeln!");
+                window.location.href = "index.html";
+                return;
+            }
+            
+            // Die Sperre wurde hier entfernt. Der Gast bekommt jetzt immer seine Punkte, wenn er den Code scannt.
+            email = loggedInUser;
+            pointsToAdd = 10;
+        } else {
+            // Normaler Modus (Staff scannt Gast-E-Mail oder JSON-Code)
+            try {
+                const jsonObj = JSON.parse(textData);
                 email = jsonObj.email.trim().toLowerCase();
                 pointsToAdd = parseInt(jsonObj.points) || 10;
             } catch(e) { 
-                email = decodedText.trim().toLowerCase(); 
+                email = textData.trim().toLowerCase(); 
                 pointsToAdd = 10; 
             }
-            
-            if (!email) {
-                alert("Fehler: Der QR-Code enthält keine E-Mail-Adresse.");
-                location.reload();
-                return;
-            }
-
-            const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
-            
-            if (error) { 
-                alert("Gast nicht gefunden: '" + email + "'\n\nHat sich der Gast schon einmal in der App angemeldet?"); 
-                location.reload(); 
-            } else {
-                await sb.from('vip_guests').update({ points: data.points + pointsToAdd }).eq('email', email);
-                alert("BÄM! " + pointsToAdd + " Pointz für " + email + " hinzugefügt."); 
-                window.location.href = "index.html";
-            }
         }
-    ).then(() => {
-        document.getElementById('status').innerText = "Kamera aktiv. Halte einen QR-Code ins Feld.";
-    }).catch(err => { 
-        console.error("Kamerafehler", err); 
-        document.getElementById('status').innerText = "Kamerazugriff verweigert oder blockiert.";
-        document.getElementById('status').style.color = "#ff3333";
-        document.getElementById('status').style.borderColor = "#ff3333";
-    });
+        
+        if (!email) {
+            alert("Fehler: Keine gültigen VIP-Daten gefunden.");
+            location.reload();
+            return;
+        }
+
+        const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
+        
+        if (error) { 
+            alert("Gast nicht gefunden: '" + email + "'"); 
+            location.reload(); 
+        } else {
+            await sb.from('vip_guests').update({ points: data.points + pointsToAdd }).eq('email', email);
+            
+            if (textData.trim() === "midus_lounge_10") {
+                alert("Nice! 🎉 10 Lounge-Pointz wurden deinem VIP-Konto gutgeschrieben.");
+            } else {
+                alert("BÄM! " + pointsToAdd + " Pointz für " + email + " gebucht.");
+            }
+            
+            window.location.href = "index.html";
+        }
+    }
 </script>
 </body>
 </html>
