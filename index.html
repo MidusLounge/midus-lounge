@@ -143,19 +143,33 @@
     async function login() {
         const email = document.getElementById('email-input').value.trim();
         if(!email) return alert("Bitte E-Mail Adresse eingeben!");
+        
+        // Prüfe ob der User existiert
         const { data, error } = await sb.from('vip_guests').select('*').eq('email', email);
         if (error) return alert("Verbindungsfehler: " + error.message);
-        if (data.length === 0) await sb.from('vip_guests').insert([{ email: email, points: 0 }]);
+        
+        // Wenn der User neu ist, anlegen
+        if (data.length === 0) {
+            const { error: insertErr } = await sb.from('vip_guests').insert([{ email: email, points: 0 }]);
+            
+            // Wenn Supabase das Einfügen blockiert, geben wir jetzt eine Fehlermeldung aus!
+            if (insertErr) return alert("Fehler beim Anlegen des Gastes: " + insertErr.message);
+        }
+        
         localStorage.setItem('midus_user', email);
         checkProfile(email);
     }
 
     async function checkProfile(email) {
         const { data } = await sb.from('vip_guests').select('birth_date').eq('email', email).single();
-        if (data && !data.birth_date) {
+        
+        // Wenn kein Datum gefunden wurde ODER der User gerade erst frisch angelegt wurde (!data)
+        if (!data || !data.birth_date) {
             document.getElementById('birthday-setup').style.display = 'flex';
             document.getElementById('login-overlay').style.display = 'none';
-        } else { location.reload(); }
+        } else { 
+            location.reload(); 
+        }
     }
 
     async function saveBirthday() {
