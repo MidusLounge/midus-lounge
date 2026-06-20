@@ -2,7 +2,6 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner - Midus Lounge</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -19,14 +18,9 @@
     </style>
 </head>
 <body>
-
 <div class="app-container">
     <div class="header">VIP Scanner</div>
-    <div class="content">
-        <div id="reader"></div>
-        <p id="status" style="color: #aaa; margin-top: 20px; text-align: center;">Kamera bereit...</p>
-    </div>
-
+    <div class="content"><div id="reader"></div><p id="status" style="color:#aaa;">Kamera bereit...</p></div>
     <div class="tab-bar">
         <a href="index.html" class="tab-link">🏠</a>
         <a href="karte.html" class="tab-link">🔍</a>
@@ -34,53 +28,27 @@
         <a href="events.html" class="tab-link">🎟️</a>
     </div>
 </div>
-
 <script>
-    // Initialisierung mit der Basis-URL (ohne /rest/v1)
     const sb = supabase.createClient(
         'https://bbtjimaixtekzejoslfw.supabase.co', 
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY'
     );
-
     const html5QrCode = new Html5Qrcode("reader");
-
-    html5QrCode.start(
-        { facingMode: "environment" }, 
-        { fps: 10, qrbox: 250 },
-        async (decodedText) => {
-            html5QrCode.stop();
-            document.getElementById('status').innerText = "Verarbeite...";
-
-            let email, pointsToAdd;
-
-            // Versuche zu erkennen, ob es JSON ist
-            try {
-                const jsonObj = JSON.parse(decodedText);
-                email = jsonObj.email;
-                pointsToAdd = parseInt(jsonObj.points) || 10;
-            } catch (e) {
-                // Wenn kein JSON, dann ist es die E-Mail direkt
-                email = decodedText.trim();
-                pointsToAdd = 10;
-            }
-
-            // 1. User suchen
-            const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
-
-            if (error) {
-                alert("Fehler: User " + email + " wurde nicht gefunden.");
-                location.reload();
-            } else {
-                // 2. Punkte addieren
-                const newPoints = (data.points || 0) + pointsToAdd;
-                await sb.from('vip_guests').update({ points: newPoints }).eq('email', email);
-                
-                alert("Erfolg! " + pointsToAdd + " Punkte für " + email + " hinzugefügt.");
-                window.location.href = "index.html";
-            }
-        },
-        (err) => {}
-    ).catch(err => { console.error("Kamera-Fehler:", err); });
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (decodedText) => {
+        html5QrCode.stop();
+        let email, pointsToAdd;
+        try {
+            const jsonObj = JSON.parse(decodedText);
+            email = jsonObj.email;
+            pointsToAdd = parseInt(jsonObj.points) || 10;
+        } catch(e) { email = decodedText.trim(); pointsToAdd = 10; }
+        const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
+        if (error) { alert("User nicht gefunden"); location.reload(); }
+        else {
+            await sb.from('vip_guests').update({ points: data.points + pointsToAdd }).eq('email', email);
+            alert("Erfolg! " + pointsToAdd + " Punkte hinzugefügt."); window.location.href = "index.html";
+        }
+    });
 </script>
 </body>
 </html>
