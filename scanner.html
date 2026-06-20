@@ -113,11 +113,10 @@
     
     const html5QrCode = new Html5Qrcode("reader");
     
-    // NEU: formatsToSupport zwingt die Kamera, AUSSCHLIESSLICH nach QR-Codes zu suchen
     html5QrCode.start(
         { facingMode: "environment" }, 
         { 
-            fps: 15, // Etwas höhere Framerate für flüssigeres Bild
+            fps: 15, 
             qrbox: 250,
             formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
         }, 
@@ -130,21 +129,27 @@
             
             try {
                 const jsonObj = JSON.parse(decodedText);
-                email = jsonObj.email;
+                email = jsonObj.email.trim().toLowerCase();
                 pointsToAdd = parseInt(jsonObj.points) || 10;
             } catch(e) { 
-                email = decodedText.trim(); 
+                email = decodedText.trim().toLowerCase(); 
                 pointsToAdd = 10; 
             }
             
+            if (!email) {
+                alert("Fehler: Der QR-Code enthält keine E-Mail-Adresse.");
+                location.reload();
+                return;
+            }
+
             const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
             
             if (error) { 
-                alert("Gast nicht gefunden!"); 
+                alert("Gast nicht gefunden: '" + email + "'\n\nHat sich der Gast schon einmal in der App angemeldet?"); 
                 location.reload(); 
             } else {
                 await sb.from('vip_guests').update({ points: data.points + pointsToAdd }).eq('email', email);
-                alert("Erfolg! " + pointsToAdd + " Pointz hinzugefügt."); 
+                alert("Erfolg! " + pointsToAdd + " Pointz für " + email + " hinzugefügt."); 
                 window.location.href = "index.html";
             }
         }
