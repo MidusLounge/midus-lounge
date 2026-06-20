@@ -6,21 +6,22 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
+        /* (Gleiches CSS) */
         :root { --bg-dark: #050505; --cyan: #00d2ff; }
-        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin:0; }
-        .app-container { width: 375px; height: 812px; background-color: var(--bg-dark); border-radius: 40px; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; }
-        .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; color: var(--cyan); }
-        #reader { width: 100%; height: 400px; padding: 10px; }
+        body { background-color: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .app-container { width: 360px; height: 720px; background-color: var(--bg-dark); border-radius: 30px; border: 4px solid #333; overflow: hidden; display: flex; flex-direction: column; }
+        .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); }
+        #reader { width: 100%; height: 350px; padding: 10px; }
         .content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
-        .tab-bar { background-color: #151515; padding: 15px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
-        .tab-link { text-decoration: none; color: #888; font-size: 24px; padding: 10px 5px; }
+        .tab-bar { background-color: #111; padding: 10px; display: flex; justify-content: space-around; border-top: 1px solid #333; }
+        .tab-link { text-decoration: none; color: #666; font-size: 22px; }
         .tab-link.active { color: var(--cyan); }
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="header">VIP Scanner</div>
-    <div class="content"><div id="reader"></div><p id="status" style="color:#aaa;">Kamera bereit...</p></div>
+    <div class="content"><div id="reader"></div><p id="status" style="color:#aaa; font-size:12px;">Kamera bereit...</p></div>
     <div class="tab-bar">
         <a href="index.html" class="tab-link">🏠</a>
         <a href="karte.html" class="tab-link">🔍</a>
@@ -29,12 +30,9 @@
     </div>
 </div>
 <script>
-    const sb = supabase.createClient(
-        'https://bbtjimaixtekzejoslfw.supabase.co', 
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY'
-    );
+    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
     const html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (decodedText) => {
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, async (decodedText) => {
         html5QrCode.stop();
         let email, pointsToAdd;
         try {
@@ -46,7 +44,7 @@
         if (error) { alert("User nicht gefunden"); location.reload(); }
         else {
             await sb.from('vip_guests').update({ points: data.points + pointsToAdd }).eq('email', email);
-            alert("Erfolg! " + pointsToAdd + " Punkte hinzugefügt."); window.location.href = "index.html";
+            alert("Erfolg! Punkte hinzugefügt."); window.location.href = "index.html";
         }
     });
 </script>
