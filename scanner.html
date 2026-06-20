@@ -48,14 +48,67 @@
             align-items: center; 
         }
         
-        #reader { 
-            width: 100%; 
-            height: 350px; 
-            padding: 10px; 
-            margin-top: 20px; 
-            border-radius: 12px;
+        /* --- NEU: Der Kamera-Bereich mit Overlay --- */
+        .scanner-wrapper {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            margin-top: 20px;
+            border-radius: 16px;
             overflow: hidden;
             border: 2px solid #222;
+            background: #000;
+        }
+
+        #reader { width: 100%; height: 100%; }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* Klicks gehen durch das Overlay an die Kamera */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* Das Quadrat in der Mitte */
+        .qr-target {
+            width: 220px;
+            height: 220px;
+            position: relative;
+        }
+
+        /* Die 4 Neon-Ecken */
+        .corner {
+            position: absolute;
+            width: 40px; height: 40px;
+            border-color: var(--cyan);
+            border-style: solid;
+            border-width: 0;
+            filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.8));
+        }
+        .tl { top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 12px; }
+        .tr { top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 12px; }
+        .bl { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 12px; }
+        .br { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 12px; }
+
+        /* Der animierte Neon-Laser */
+        .laser {
+            position: absolute;
+            left: 5%;
+            width: 90%;
+            height: 2px;
+            background: var(--cyan);
+            box-shadow: 0 0 15px 2px var(--cyan);
+            animation: scan-laser 2.5s infinite ease-in-out;
+        }
+
+        @keyframes scan-laser {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
         }
         
         #status {
@@ -66,6 +119,8 @@
             padding: 10px 20px;
             border-radius: 20px;
             border: 1px solid #333;
+            text-align: center;
+            width: 100%;
         }
         
         .tab-bar { 
@@ -85,8 +140,22 @@
 <div class="app-container">
     <div class="header">VIP Scanner</div>
     <div class="content">
-        <div id="reader"></div>
-        <p id="status">Kamera bereit...</p>
+        
+        <div class="scanner-wrapper">
+            <div id="reader"></div>
+            
+            <div class="scanner-overlay">
+                <div class="qr-target">
+                    <div class="corner tl"></div>
+                    <div class="corner tr"></div>
+                    <div class="corner bl"></div>
+                    <div class="corner br"></div>
+                    <div class="laser"></div>
+                </div>
+            </div>
+        </div>
+
+        <p id="status">Warte auf Kamera...</p>
     </div>
     
     <div class="tab-bar">
@@ -97,7 +166,16 @@
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3l-8 11.5V22H10v-7.5L2 3h20z"></path><line x1="8" y1="22" x2="16" y2="22"></line></svg>
         </a>
         <a href="scanner.html" class="tab-link active">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6v12M9 6v12M12 6v12M15 6v12M19 6v12"></path><path d="M3 8V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-3"></path></svg>
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                <rect x="7" y="7" width="4" height="4" rx="0.5"></rect>
+                <rect x="13" y="7" width="4" height="4" rx="0.5"></rect>
+                <rect x="7" y="13" width="4" height="4" rx="0.5"></rect>
+                <rect x="13" y="13" width="4" height="4" rx="0.5"></rect>
+            </svg>
         </a>
         <a href="events.html" class="tab-link">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -117,13 +195,14 @@
         { facingMode: "environment" }, 
         { 
             fps: 15, 
-            qrbox: 250,
+            qrbox: { width: 220, height: 220 }, // Quadrat exakt so groß wie unser Neon-Rahmen
             formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
         }, 
         async (decodedText) => {
             html5QrCode.stop();
-            document.getElementById('status').innerText = "Wird verarbeitet...";
+            document.getElementById('status').innerText = "Berechne Pointz...";
             document.getElementById('status').style.color = "var(--cyan)";
+            document.getElementById('status').style.borderColor = "var(--cyan)";
             
             let email, pointsToAdd;
             
@@ -149,14 +228,17 @@
                 location.reload(); 
             } else {
                 await sb.from('vip_guests').update({ points: data.points + pointsToAdd }).eq('email', email);
-                alert("Erfolg! " + pointsToAdd + " Pointz für " + email + " hinzugefügt."); 
+                alert("BÄM! " + pointsToAdd + " Pointz für " + email + " hinzugefügt."); 
                 window.location.href = "index.html";
             }
         }
-    ).catch(err => { 
+    ).then(() => {
+        document.getElementById('status').innerText = "Kamera aktiv. Halte einen QR-Code ins Feld.";
+    }).catch(err => { 
         console.error("Kamerafehler", err); 
-        document.getElementById('status').innerText = "Kamerazugriff verweigert.";
+        document.getElementById('status').innerText = "Kamerazugriff verweigert oder blockiert.";
         document.getElementById('status').style.color = "#ff3333";
+        document.getElementById('status').style.borderColor = "#ff3333";
     });
 </script>
 </body>
