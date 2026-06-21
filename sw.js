@@ -3,5 +3,5 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-    // Bleibt leer: Lädt immer live aus dem Netz, speichert keinen alten Cache!
+    // Dummy-Worker: Zwingt die App dazu, immer die Live-Daten aus Supabase zu ziehen
 });
