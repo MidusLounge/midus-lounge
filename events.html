@@ -28,7 +28,7 @@
         .header { padding: 15px 20px 8px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
         .content { padding: 12px 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
         
-      /* --- LIVE-KALENDER STYLING (Kompakt-Cockpit) --- */
+        /* --- LIVE-KALENDER STYLING (Kompaktes Cockpit) --- */
         .calendar-box { width: 100%; background: var(--panel-bg); border: 1px solid var(--border-gray); border-radius: 16px; padding: 10px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
         .calendar-nav { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
         .calendar-nav button { background: transparent; border: none; color: var(--cyan); font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 8px; }
@@ -42,30 +42,52 @@
         .calendar-day.has-event::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 3.5px; height: 3.5px; background-color: var(--cyan); border-radius: 50%; box-shadow: 0 0 6px var(--cyan); }
         .calendar-day.selected { background: rgba(0, 210, 255, 0.15); border: 1px solid var(--cyan); color: white; font-weight: bold; }
 
-        /* --- EVENT CARD STYLING --- */
+        /* --- ACCORDION EVENT CARD STYLING --- */
         #events-container { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .event-card { background: var(--panel-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-gray); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .event-banner { height: 100px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; letter-spacing: 1px; position: relative; text-align: center; padding: 0 15px; }
-        .event-date { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--cyan); color: var(--cyan); padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: bold; }
         
-        .event-body { padding: 15px; display: flex; flex-direction: column; align-items: flex-start; }
-        .event-body h3 { color: #888888; font-weight: 400; font-size: 15px; text-align: left; width: 100%; margin: 0; }
+        .event-card { 
+            background: var(--panel-bg); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            border: 1px solid var(--border-gray); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer; /* Zeigt dem Gast, dass die ganze Karte klickbar ist */
+            transition: border-color 0.2s;
+        }
+        .event-card:active { border-color: #666; }
+        
+        /* Banner von 100px auf 80px verschlankt für perfekten "Ticket-Look" */
+        .event-banner { height: 80px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; letter-spacing: 1px; position: relative; text-align: center; padding: 0 15px; user-select: none; }
+        .event-date { position: absolute; top: 10px; right: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--cyan); color: var(--cyan); padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: bold; }
+        
+        /* Der kleine Rotations-Pfeil im Banner */
+        .chevron { display: inline-block; transition: transform 0.25s ease; font-size: 11px; margin-left: 6px; opacity: 0.7; }
+        .event-card.open .chevron { transform: rotate(180deg); opacity: 1; }
+
+        /* Der Subtitle-Body (Standardmäßig auf 0px Höhe versteckt!) */
+        .event-body { 
+            padding: 0 15px; 
+            max-height: 0; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            transition: max-height 0.25s ease-out, padding 0.25s ease-out; 
+        }
+        
+        /* Wenn die Karte aufgeklappt wird (.open) */
+        .event-card.open .event-body { 
+            max-height: 250px; /* Genug Platz für Text + Button */
+            padding: 14px 15px 18px 15px; 
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .event-body h3 { color: #888888; font-weight: 400; font-size: 15px; text-align: left; width: 100%; margin: 0; line-height: 1.4; }
         
         .btn-add-cal {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #111;
-            border: 1px solid #333;
-            color: var(--cyan);
-            padding: 8px 14px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            margin-top: 10px;
-            transition: all 0.2s ease;
+            display: inline-flex; align-items: center; gap: 8px; background: #111; border: 1px solid #333;
+            color: var(--cyan); padding: 8px 14px; border-radius: 12px; font-size: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; margin-top: 12px; transition: all 0.2s ease;
         }
         .btn-add-cal:active { transform: scale(0.96); border-color: var(--cyan); background: rgba(0, 210, 255, 0.15); }
 
@@ -135,15 +157,12 @@
 
     const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 
-    // Hilfsfunktion: Erkennt aus den Texten präzise den Wochentag (4=Do, 5=Fr, 6=Sa)
     function getRecurringWeekday(ev) {
-        if (ev.event_date) return -1; // Feste Einmal-Daten überspringen
+        if (ev.event_date) return -1; 
         let text = ((ev.title || '') + ' ' + (ev.subtitle || '') + ' ' + (ev.badge || '')).toLowerCase();
-        
         if (/freitag|friday|\bfr\b/.test(text)) return 5;
         if (/samstag|saturday|\bsa\b/.test(text)) return 6;
         if (/donnerstag|thursday|\bdo\b/.test(text)) return 4;
-        
         if (/mittwoch|wednesday|\bmi\b/.test(text)) return 3;
         if (/dienstag|tuesday|\bdi\b/.test(text)) return 2;
         if (/montag|monday|\bmo\b/.test(text)) return 1;
@@ -171,16 +190,12 @@
         let totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
 
         for (let i = 1; i < firstDayIndex; i++) {
-            const blank = document.createElement('div');
-            blank.className = 'calendar-day empty';
-            grid.appendChild(blank);
+            const blank = document.createElement('div'); blank.className = 'calendar-day empty'; grid.appendChild(blank);
         }
 
         const now = new Date();
         for (let day = 1; day <= totalDays; day++) {
-            const cell = document.createElement('div');
-            cell.className = 'calendar-day';
-            cell.innerText = day;
+            const cell = document.createElement('div'); cell.className = 'calendar-day'; cell.innerText = day;
 
             let mStr = String(currentMonth + 1).padStart(2, '0');
             let dStr = String(day).padStart(2, '0');
@@ -193,7 +208,6 @@
                 cell.classList.add('today');
             }
 
-            // PUNKT-LOGIK: Prüft ob es ein festes Datum ODER der passende Wochentag (Do, Fr, Sa) für ein Dauerevent ist
             const hasEv = allEvents.some(e => {
                 if (e.event_date === dateStr) return true;
                 if (getRecurringWeekday(e) === cellWeekday) return true;
@@ -204,10 +218,8 @@
             if (selectedDateStr === dateStr) cell.classList.add('selected');
 
             cell.onclick = () => {
-                if (selectedDateStr === dateStr) selectedDateStr = null; 
-                else selectedDateStr = dateStr;
-                renderCalendar();
-                renderEvents();
+                if (selectedDateStr === dateStr) selectedDateStr = null; else selectedDateStr = dateStr;
+                renderCalendar(); renderEvents();
             };
 
             grid.appendChild(cell);
@@ -223,7 +235,6 @@
         if (selectedDateStr) {
             const filterHeader = document.createElement('div');
             filterHeader.style.cssText = "width:100%; display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 14px; border-radius:12px; border:1px solid #222; font-size:13px; margin-bottom:4px;";
-            
             let p = selectedDateStr.split('-');
             filterHeader.innerHTML = `<span style="color:#aaa;">Filter aktiv für: <b style="color:var(--cyan);">${p[2]}.${p[1]}.${p[0]}</b></span>
                                       <button onclick="resetFilter()" style="background:transparent; border:none; color:var(--pink); font-size:12px; font-weight:bold; cursor:pointer;">Alle anzeigen</button>`;
@@ -232,7 +243,6 @@
             let clickedDateObj = new Date(selectedDateStr);
             let clickedWeekday = clickedDateObj.getDay();
 
-            // FILTER-LOGIK: Zeigt das feste Event von diesem Tag PLUS das passende wöchentliche Dauerevent (Do, Fr oder Sa)
             filtered = allEvents.filter(e => {
                 if (e.event_date === selectedDateStr) return true;
                 if (getRecurringWeekday(e) === clickedWeekday) return true;
@@ -254,33 +264,27 @@
             let dateStyle = "color: var(--cyan); border-color: var(--cyan);";
 
             if (item.theme === 'pink') {
-                gradient = "linear-gradient(45deg, #1a000e, #ff007f)";
-                textCol = "#fff";
-                dateStyle = "color:#fff; border-color:#fff;";
+                gradient = "linear-gradient(45deg, #1a000e, #ff007f)"; textCol = "#fff"; dateStyle = "color:#fff; border-color:#fff;";
             } else if (item.theme === 'cyan') {
-                gradient = "linear-gradient(45deg, #001f26, #00d2ff)";
-                textCol = "#000";
-                dateStyle = "border-color:#000; color:#000; background:rgba(255,255,255,0.2);";
+                gradient = "linear-gradient(45deg, #001f26, #00d2ff)"; textCol = "#000"; dateStyle = "border-color:#000; color:#000; background:rgba(255,255,255,0.2);";
             } else if (item.theme === 'gold') {
-                gradient = "linear-gradient(45deg, #261a00, #ffaa00)";
-                textCol = "#000";
-                dateStyle = "border-color:#000; color:#000; background:rgba(255,255,255,0.2);";
+                gradient = "linear-gradient(45deg, #261a00, #ffaa00)"; textCol = "#000"; dateStyle = "border-color:#000; color:#000; background:rgba(255,255,255,0.2);";
             }
 
             let badgeText = item.badge || "";
             if (!badgeText && item.event_date) {
-                let parts = item.event_date.split('-');
-                badgeText = `${parts[2]}.${parts[1]}.`;
+                let parts = item.event_date.split('-'); badgeText = `${parts[2]}.${parts[1]}.`;
             }
 
-            // SPEICHER-BUTTON LOGIK: Wird NUR generiert, wenn ein echtes Datum (item.event_date) existiert!
+            // WICHTIG: event.stopPropagation() schützt den Button vor dem Zuklappen der Karte!
             let calendarButtonHtml = item.event_date 
-                ? `<button class="btn-add-cal" onclick="triggerICS('${item.id}')">📅 In Kalender speichern</button>`
+                ? `<button class="btn-add-cal" onclick="event.stopPropagation(); triggerICS('${item.id}')">📅 In Kalender speichern</button>`
                 : '';
 
             card.innerHTML = `
                 <div class="event-banner" style="background: ${gradient}; color: ${textCol};">
-                    ${item.title.toUpperCase()}
+                    <span>${item.title.toUpperCase()}</span>
+                    <span class="chevron">▼</span>
                     <span class="event-date" style="${dateStyle}">${badgeText}</span>
                 </div>
                 <div class="event-body">
@@ -288,11 +292,14 @@
                     ${calendarButtonHtml}
                 </div>
             `;
+
+            // Klick-Event zum Auf- und Zuklappen
+            card.onclick = () => { card.classList.toggle('open'); };
+
             container.appendChild(card);
         });
     }
 
-// Erzeugt das ICS-Event: Entweder mit exakter Uhrzeit ODER als ganztägiges Fallback
     window.triggerICS = function(id) {
         const ev = allEvents.find(e => e.id == id);
         if (!ev || !ev.event_date) return; 
@@ -300,70 +307,31 @@
         let cleanTitle = (ev.title || '').replace(/,/g, '\\,').replace(/;/g, '\\;');
         let cleanSub   = (ev.subtitle || '').replace(/,/g, '\\,').replace(/;/g, '\\;');
 
-        let icsLines = [
-            "BEGIN:VCALENDAR",
-            "VERSION:2.0",
-            "PRODID:-//Midus Lounge//Nonsgml Events//DE",
-            "CALSCALE:GREGORIAN",
-            "BEGIN:VEVENT",
-            `UID:midus-${Date.now()}@miduslounge.at`
-        ];
+        let icsLines = [ "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Midus Lounge//Nonsgml Events//DE", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", `UID:midus-${Date.now()}@miduslounge.at` ];
 
-        // MODUS A: Der Betreiber hat eine exakte Uhrzeit (z.B. "21:00") in Supabase eingetragen
         if (ev.start_time) {
             let [sHrs, sMin] = ev.start_time.split(':').map(Number);
-            let startDate = new Date(ev.event_date);
-            startDate.setHours(sHrs || 0, sMin || 0, 0);
-
+            let startDate = new Date(ev.event_date); startDate.setHours(sHrs || 0, sMin || 0, 0);
             let endDate = new Date(startDate.getTime());
 
             if (ev.end_time) {
-                let [eHrs, eMin] = ev.end_time.split(':').map(Number);
-                endDate.setHours(eHrs || 0, eMin || 0, 0);
-                
-                // Mitternachts-Prüfung: Wenn Endzeit (04:00) vor Startzeit (21:00) liegt -> Folgetag!
-                if (endDate <= startDate) {
-                    endDate.setDate(endDate.getDate() + 1);
-                }
-            } else {
-                endDate.setHours(startDate.getHours() + 6); // Fallback: +6 Stunden
-            }
+                let [eHrs, eMin] = ev.end_time.split(':').map(Number); endDate.setHours(eHrs || 0, eMin || 0, 0);
+                if (endDate <= startDate) endDate.setDate(endDate.getDate() + 1);
+            } else { endDate.setHours(startDate.getHours() + 6); }
 
             function formatICSTime(d) {
-                return d.getFullYear() + 
-                       String(d.getMonth() + 1).padStart(2, '0') + 
-                       String(d.getDate()).padStart(2, '0') + "T" +
-                       String(d.getHours()).padStart(2, '0') + 
-                       String(d.getMinutes()).padStart(2, '0') + "00";
+                return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + "T" + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + "00";
             }
-
-            let dtStart = formatICSTime(startDate);
-            let dtEnd   = formatICSTime(endDate);
-
+            let dtStart = formatICSTime(startDate); let dtEnd = formatICSTime(endDate);
             icsLines.push(`DTSTAMP:${dtStart}Z`, `DTSTART:${dtStart}`, `DTEND:${dtEnd}`);
-
         } else {
-            // MODUS B: Keine Uhrzeit angegeben -> Klassisches ganztägiges Event
             let dateObj = new Date(ev.event_date);
-            function formatICSAllday(d) {
-                return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-            }
-            let dtStart = formatICSAllday(dateObj);
-            let nextDayObj = new Date(dateObj.getTime() + (24 * 3600 * 1000));
-            let dtEnd = formatICSAllday(nextDayObj);
-
+            function formatICSAllday(d) { return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); }
+            let dtStart = formatICSAllday(dateObj); let nextDayObj = new Date(dateObj.getTime() + (24 * 3600 * 1000)); let dtEnd = formatICSAllday(nextDayObj);
             icsLines.push(`DTSTAMP:${dtStart}T000000Z`, `DTSTART;VALUE=DATE:${dtStart}`, `DTEND;VALUE=DATE:${dtEnd}`);
         }
 
-        // Gemeinsame Event-Infos
-        icsLines.push(
-            `SUMMARY:Midus Lounge - ${cleanTitle}`,
-            `DESCRIPTION:${cleanSub}`,
-            "LOCATION:Josef-Widy-Straße 3\\, 3943 Schrems",
-            "STATUS:CONFIRMED",
-            "END:VEVENT",
-            "END:VCALENDAR"
-        );
+        icsLines.push(`SUMMARY:Midus Lounge - ${cleanTitle}`, `DESCRIPTION:${cleanSub}`, "LOCATION:Josef-Widy-Straße 3\\, 3943 Schrems", "STATUS:CONFIRMED", "END:VEVENT", "END:VCALENDAR");
 
         const blob = new Blob([icsLines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
