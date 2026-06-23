@@ -28,7 +28,7 @@
         .header { padding: 15px 20px 8px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
         .content { padding: 12px 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
         
-        /* --- HI-END KALENDER STYLING --- */
+        /* --- LIVE-KALENDER STYLING --- */
         .calendar-box { width: 100%; background: var(--panel-bg); border: 1px solid var(--border-gray); border-radius: 16px; padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
         .calendar-nav { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 12px; font-weight: bold; font-size: 15px; }
         .calendar-nav button { background: transparent; border: none; color: var(--cyan); font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 10px; }
@@ -39,7 +39,6 @@
         .calendar-day.empty { cursor: default; }
         .calendar-day.today { color: var(--pink); font-weight: bold; }
         
-        /* Der leuchtende Event-Punkt */
         .calendar-day.has-event::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--cyan); border-radius: 50%; box-shadow: 0 0 6px var(--cyan); }
         .calendar-day.selected { background: rgba(0, 210, 255, 0.15); border: 1px solid var(--cyan); color: white; font-weight: bold; }
 
@@ -49,8 +48,7 @@
         .event-banner { height: 100px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; letter-spacing: 1px; position: relative; text-align: center; padding: 0 15px; }
         .event-date { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--cyan); color: var(--cyan); padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: bold; }
         .event-body { padding: 15px; }
-        .event-body h3 { color: white; font-size: 16px; margin-bottom: 5px; text-align: left; }
-        .event-body p { color: #888; font-size: 13px; line-height: 1.4; text-align: left; }
+        .event-body h3 { color: white; font-size: 16px; text-align: left; }
 
         /* Tab Bar Navigation */
         .tab-bar { background-color: #151515; padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
@@ -97,7 +95,7 @@
         </a>
         <a href="kontakt.html" class="tab-link">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1 2 1.72z"></path>
             </svg>
         </a>
     </div>
@@ -110,7 +108,7 @@
     );
 
     let allEvents = [];
-    let selectedDateStr = null; // Format: YYYY-MM-DD
+    let selectedDateStr = null; 
     
     let dateObj = new Date();
     let currentYear = dateObj.getFullYear();
@@ -133,18 +131,16 @@
         document.getElementById('month-year-display').innerText = `${monthNames[currentMonth]} ${currentYear}`;
 
         let firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
-        if (firstDayIndex === 0) firstDayIndex = 7; // Korrektur: Montag als 1. Wochentag kalibrieren
+        if (firstDayIndex === 0) firstDayIndex = 7; 
 
         let totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-        // Leere Slots auffüllen (Tage vor dem 1. des Monats)
         for (let i = 1; i < firstDayIndex; i++) {
             const blank = document.createElement('div');
             blank.className = 'calendar-day empty';
             grid.appendChild(blank);
         }
 
-        // Monatstage rendern
         const now = new Date();
         for (let day = 1; day <= totalDays; day++) {
             const cell = document.createElement('div');
@@ -155,21 +151,18 @@
             let dStr = String(day).padStart(2, '0');
             let dateStr = `${currentYear}-${mStr}-${dStr}`;
 
-            // Heute hervorheben
             if (now.getFullYear() === currentYear && now.getMonth() === currentMonth && now.getDate() === day) {
                 cell.classList.add('today');
             }
 
-            // Prüfen, ob für dieses Datum ein Event existiert
             const hasEv = allEvents.some(e => e.event_date === dateStr);
             if (hasEv) cell.classList.add('has-event');
 
-            // Selektierten Tag markieren
             if (selectedDateStr === dateStr) cell.classList.add('selected');
 
             cell.onclick = () => {
                 if (selectedDateStr === dateStr) {
-                    selectedDateStr = null; // Erneuter Klick hebt Filter auf
+                    selectedDateStr = null; 
                 } else {
                     selectedDateStr = dateStr;
                 }
@@ -188,7 +181,6 @@
         let filtered = allEvents;
 
         if (selectedDateStr) {
-            // Filter-Header einblenden
             const filterHeader = document.createElement('div');
             filterHeader.style.cssText = "width:100%; display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 14px; border-radius:12px; border:1px solid #222; font-size:13px; margin-bottom:4px;";
             
@@ -197,7 +189,6 @@
                                       <button onclick="resetFilter()" style="background:transparent; border:none; color:var(--pink); font-size:12px; font-weight:bold; cursor:pointer;">Alle anzeigen</button>`;
             container.appendChild(filterHeader);
 
-            // Filter anwenden (Zeige Events an diesem Tag)
             filtered = allEvents.filter(e => e.event_date === selectedDateStr);
 
             if (filtered.length === 0) {
@@ -210,7 +201,6 @@
             const card = document.createElement('div');
             card.className = 'event-card';
 
-            // Farb-Themes steuern
             let gradient = "linear-gradient(45deg, #111, #222)";
             let textCol = "var(--pink)";
             let dateStyle = "color: var(--cyan); border-color: var(--cyan);";
@@ -229,13 +219,13 @@
                 dateStyle = "border-color:#000; color:#000; background:rgba(255,255,255,0.2);";
             }
 
-            // Badge/Datum formatieren
             let badgeText = item.badge || "";
             if (!badgeText && item.event_date) {
                 let parts = item.event_date.split('-');
                 badgeText = `${parts[2]}.${parts[1]}.`;
             }
 
+            /* HIER WURDE DIE DESCRIPTION RESTRUSTLOS ENTFERNT */
             card.innerHTML = `
                 <div class="event-banner" style="background: ${gradient}; color: ${textCol};">
                     ${item.title.toUpperCase()}
@@ -243,7 +233,6 @@
                 </div>
                 <div class="event-body">
                     <h3>${item.subtitle}</h3>
-                    <p>${item.description}</p>
                 </div>
             `;
             container.appendChild(card);
@@ -256,7 +245,6 @@
         renderEvents();
     }
 
-    // Monats-Navigation Tasten
     document.getElementById('prev-month').onclick = () => {
         currentMonth--;
         if (currentMonth < 0) { currentMonth = 11; currentYear--; }
@@ -268,7 +256,6 @@
         renderCalendar();
     };
 
-    // System-Start
     loadEvents();
 </script>
 
