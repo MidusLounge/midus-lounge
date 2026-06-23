@@ -29,7 +29,7 @@
         .bl { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 12px; }
         .br { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 12px; }
 
-       .laser { display: none !important; }
+   .laser { position: absolute; left: 5%; width: 90%; height: 2px; background: var(--cyan); box-shadow: 0 0 15px 2px var(--cyan); animation: scan-laser 2.5s infinite ease-in-out; }
 
         @keyframes scan-laser { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
         
@@ -97,7 +97,7 @@
     
     html5QrCode.start(
         { facingMode: "environment" }, 
-        { fps: 15, qrbox: { width: 200, height: 200 } }, 
+       { fps: 15 },
         async (decodedText) => {
             
             // SCHNITT B: Eiskalter Türsteher. Was kein Midus-Code oder JSON ist -> Ignorieren!
