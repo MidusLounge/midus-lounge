@@ -148,19 +148,18 @@
 
         .icon-svg { width: 22px; height: 22px; flex-shrink: 0; }
         
- .tab-bar { 
+.tab-bar { 
             background-color: #151515; 
             padding: 10px 15px; 
             display: flex; 
             justify-content: space-around; 
             border-top: 1px solid #222; 
             padding-bottom: env(safe-area-inset-bottom, 15px); 
-            flex-shrink: 0; /* Verriegelt die Leiste, damit sie niemals weggedrückt wird */
-        }
         }
         .tab-link { text-decoration: none; display: flex; justify-content: center; align-items: center; padding: 8px; width: 20%; }
         .tab-link svg { stroke: #555; transition: all 0.3s ease; width: 26px; height: 26px; }
         .tab-link.active svg { stroke: var(--cyan); filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.6)); }
+        
     </style>
 </head>
 <body>
