@@ -7,11 +7,12 @@
     <style>
         :root { 
             --bg-dark: #050505; 
-            --panel-bg: #151515; 
+            --panel-bg: #000000; /* Alle Felder-Hintergründe jetzt schwarz */
             --cyan: #00d2ff;
             --wa-green: #25D366;
             --ig-pink: #E1306C;
             --fb-blue: #1877F2;
+            --border-gray: #333333; /* Einheitliche graue Umrandung */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         
@@ -55,7 +56,7 @@
             gap: 16px;
         }
 
-        /* --- DAS NEUE MODUL-LAYOUT --- */
+        /* --- DAS MODIFIZIERTE LAYOUT --- */
 
         /* 1. Hero Logo */
         .logo-box {
@@ -72,15 +73,15 @@
         /* 2. Google Maps Deeplink-Pille */
         .location-pill {
             width: 100%;
-            background: linear-gradient(135deg, #161616, #0a0a0a);
-            border: 1px solid rgba(0, 210, 255, 0.35);
+            background: var(--panel-bg);
+            border: 1px solid var(--border-gray);
             padding: 14px 18px;
             border-radius: 16px;
             display: flex;
             align-items: center;
             gap: 15px;
             text-decoration: none;
-            box-shadow: 0 4px 20px rgba(0, 210, 255, 0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             transition: all 0.2s ease;
         }
         .location-pill:active { transform: scale(0.98); border-color: var(--cyan); }
@@ -106,9 +107,9 @@
         }
         .btn-action:active { transform: scale(0.98); }
 
-        .btn-phone { background: var(--panel-bg); color: white; border: 1px solid #262626; }
-        .btn-wa    { background: transparent; color: white; border: 1px solid var(--wa-green); }
-        .btn-mail  { background: var(--panel-bg); color: white; border: 1px solid #262626; }
+        .btn-phone { background: var(--panel-bg); color: white; border: 1px solid var(--border-gray); }
+        .btn-wa    { background: var(--panel-bg); color: white; border: 1px solid var(--border-gray); }
+        .btn-mail  { background: var(--panel-bg); color: white; border: 1px solid var(--border-gray); }
 
         /* 4. Social Media 2er-Grid (Nur Icons) */
         .social-grid {
@@ -119,7 +120,7 @@
         }
         .btn-social {
             background: var(--panel-bg);
-            border: 1px solid #262626;
+            border: 1px solid var(--border-gray);
             height: 56px;
             border-radius: 14px;
             display: flex;
@@ -133,8 +134,8 @@
         /* 5. Öffnungszeiten Kachel */
         .hours-panel {
             width: 100%;
-            background: linear-gradient(180deg, #141414, #0d0d0d);
-            border: 1px solid #222;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-gray);
             border-radius: 16px;
             padding: 18px;
             display: flex;
@@ -145,10 +146,10 @@
         .hours-header {
             font-size: 11px;
             font-weight: 700;
-            color: #666;
+            color: #ffffff; /* Öffnungszeiten-Header Text zu weiß */
             letter-spacing: 1.5px;
             text-transform: uppercase;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid var(--border-gray);
             padding-bottom: 8px;
             margin-bottom: 2px;
             text-align: left;
@@ -163,7 +164,7 @@
         
         /* Tab Bar Navigation */
         .tab-bar { 
-            background-color: var(--panel-bg); 
+            background-color: #151515; 
             padding: 10px 15px; 
             display: flex; 
             justify-content: space-around; 
@@ -181,12 +182,10 @@
     
     <div class="content">
         
-        <!-- 1. LOGO HERO -->
         <div class="logo-box">
             <img src="logo.png" alt="Midus Lounge Logo">
         </div>
 
-        <!-- 2. GOOGLE MAPS PILLE -->
         <a href="https://www.google.com/maps/search/?api=1&query=Josef+Widy+Straße+3+3943+Schrems" target="_blank" class="location-pill">
             <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -194,14 +193,12 @@
             </svg>
             <div style="text-align: left;">
                 <span style="display:block; color:#fff; font-weight: bold; font-size:15px;">Josef-Widy-Straße 3</span>
-                <span style="font-size:12px; color:var(--cyan); display:block; margin-top:1px;">3943 Schrems • In Google Maps öffnen</span>
+                <span style="font-size:12px; color:#888888; display:block; margin-top:1px;">3943 Schrems • In Google Maps öffnen</span>
             </div>
         </a>
 
-        <!-- 3. HOTLINE GRUPPE -->
         <div class="action-group">
             
-            <!-- Telefon -->
             <a href="tel:0285377000" class="btn-action btn-phone">
                 <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
@@ -212,7 +209,6 @@
                 </div>
             </a>
 
-            <!-- WhatsApp Transparent -->
             <a href="https://wa.me/436641444374" target="_blank" class="btn-action btn-wa">
                 <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--wa-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
@@ -223,7 +219,6 @@
                 </div>
             </a>
 
-            <!-- E-Mail Weiß -->
             <a href="mailto:info@miduslounge.at" class="btn-action btn-mail">
                 <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
@@ -234,7 +229,6 @@
 
         </div>
 
-        <!-- 4. SOCIAL MEDIA GRID (Nur Vektor-Logos) -->
         <div class="social-grid">
             <a href="https://www.instagram.com/midusbar/" target="_blank" class="btn-social btn-ig">
                 <svg class="icon-svg" viewBox="0 0 24 24" stroke="var(--ig-pink)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
@@ -244,16 +238,15 @@
             </a>
         </div>
 
-        <!-- 5. ÖFFNUNGSZEITEN PANEL -->
         <div class="hours-panel">
             <div class="hours-header">Öffnungszeiten</div>
             <div class="time-row">
-                <span style="color: #888;">Do - Sa:</span>
-                <span style="color: white; font-weight: 500;">18:00 - 02:00 Uhr</span>
+                <span style="color: #ffffff;">Do - Sa:</span>
+                <span style="color: #ffffff; font-weight: 500;">18:00 - 02:00 Uhr</span>
             </div>
             <div class="time-row">
-                <span style="color: #888;">So - Mi:</span>
-                <span style="color: var(--cyan); font-weight: 500;">Geschlossen</span>
+                <span style="color: #ffffff;">So - Mi:</span>
+                <span style="color: #ffffff; font-weight: 500;">Geschlossen</span>
             </div>
         </div>
 
