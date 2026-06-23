@@ -47,8 +47,27 @@
         .event-card { background: var(--panel-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-gray); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .event-banner { height: 100px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; letter-spacing: 1px; position: relative; text-align: center; padding: 0 15px; }
         .event-date { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--cyan); color: var(--cyan); padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: bold; }
-        .event-body { padding: 15px; }
-        .event-body h3 { color: white; font-size: 16px; text-align: left; }
+        
+        .event-body { padding: 15px; display: flex; flex-direction: column; align-items: flex-start; }
+        .event-body h3 { color: white; font-size: 16px; text-align: left; width: 100%; margin-bottom: 10px; }
+        
+        /* Der neue Kalender-Export Button */
+        .btn-add-cal {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #111;
+            border: 1px solid #333;
+            color: var(--cyan);
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-add-cal:active { transform: scale(0.96); border-color: var(--cyan); background: rgba(0, 210, 255, 0.15); }
 
         /* Tab Bar Navigation */
         .tab-bar { background-color: #151515; padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
@@ -225,7 +244,7 @@
                 badgeText = `${parts[2]}.${parts[1]}.`;
             }
 
-            /* HIER WURDE DIE DESCRIPTION RESTRUSTLOS ENTFERNT */
+            // Sicherer Aufruf über item.id schützt vor Quellcode-Brüchen
             card.innerHTML = `
                 <div class="event-banner" style="background: ${gradient}; color: ${textCol};">
                     ${item.title.toUpperCase()}
@@ -233,11 +252,66 @@
                 </div>
                 <div class="event-body">
                     <h3>${item.subtitle}</h3>
+                    <button class="btn-add-cal" onclick="triggerICS('${item.id}')">
+                        📅 In Kalender speichern
+                    </button>
                 </div>
             `;
             container.appendChild(card);
         });
     }
+
+// Erzeugt das Event als ganztägiges Ereignis ohne Start- und Endzeit
+    window.triggerICS = function(id) {
+        const ev = allEvents.find(e => e.id == id);
+        if (!ev) return;
+
+        // Wenn kein Datum da ist, nehmen wir das heutige Datum
+        let dateObj = ev.event_date ? new Date(ev.event_date) : new Date();
+
+        // Formatierung für ganztägige Events: REINES Datum (YYYYMMDD) ohne "T" und Uhrzeit!
+        function formatICSAllday(d) {
+            return d.getFullYear() +
+                   String(d.getMonth() + 1).padStart(2, '0') +
+                   String(d.getDate()).padStart(2, '0');
+        }
+
+        let dtStart = formatICSAllday(dateObj);
+        
+        // Für ganztägige ICS-Termine muss das Enddatum exakt der nächste Tag sein
+        let nextDayObj = new Date(dateObj.getTime() + (24 * 3600 * 1000));
+        let dtEnd = formatICSAllday(nextDayObj);
+
+        // ICS-Formatierung: Kommas und Semikolons maskieren
+        let cleanTitle = (ev.title || '').replace(/,/g, '\\,').replace(/;/g, '\\;');
+        let cleanSub   = (ev.subtitle || '').replace(/,/g, '\\,').replace(/;/g, '\\;');
+
+        const icsContent = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Midus Lounge//Nonsgml Events//DE",
+            "CALSCALE:GREGORIAN",
+            "BEGIN:VEVENT",
+            `UID:midus-${Date.now()}@miduslounge.at`,
+            `DTSTAMP:${dtStart}T000000Z`,
+            `DTSTART;VALUE=DATE:${dtStart}`, // VALUE=DATE signalisiert dem Handy: Ganztägig!
+            `DTEND;VALUE=DATE:${dtEnd}`,
+            `SUMMARY:Midus Lounge - ${cleanTitle}`,
+            `DESCRIPTION:${cleanSub}`,
+            "LOCATION:Josef-Widy-Straße 3\\, 3943 Schrems",
+            "STATUS:CONFIRMED",
+            "END:VEVENT",
+            "END:VCALENDAR"
+        ].join("\r\n");
+
+        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${(ev.title || 'event').toLowerCase().replace(/[^a-z0-9]/g, '_')}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     window.resetFilter = function() {
         selectedDateStr = null;
@@ -245,26 +319,14 @@
         renderEvents();
     }
 
-    document.getElementById('prev-month').onclick = () => {
-        currentMonth--;
-        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-        renderCalendar();
-    };
-    document.getElementById('next-month').onclick = () => {
-        currentMonth++;
-        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-        renderCalendar();
-    };
+    document.getElementById('prev-month').onclick = () => { currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar(); };
+    document.getElementById('next-month').onclick = () => { currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCalendar(); };
 
     loadEvents();
 </script>
 
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js');
-        });
-    }
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
 </script>
 </body>
 </html>
