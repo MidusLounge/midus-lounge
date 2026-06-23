@@ -28,18 +28,18 @@
         .header { padding: 15px 20px 8px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
         .content { padding: 12px 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
         
-        /* --- LIVE-KALENDER STYLING --- */
-        .calendar-box { width: 100%; background: var(--panel-bg); border: 1px solid var(--border-gray); border-radius: 16px; padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-        .calendar-nav { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 12px; font-weight: bold; font-size: 15px; }
-        .calendar-nav button { background: transparent; border: none; color: var(--cyan); font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 10px; }
-        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: #555; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
-        .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 4px; }
+      /* --- LIVE-KALENDER STYLING (Kompakt-Cockpit) --- */
+        .calendar-box { width: 100%; background: var(--panel-bg); border: 1px solid var(--border-gray); border-radius: 16px; padding: 10px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .calendar-nav { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
+        .calendar-nav button { background: transparent; border: none; color: var(--cyan); font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 8px; }
+        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: #555; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px; }
         
-        .calendar-day { color: #bbb; font-size: 13px; padding: 8px 0; border-radius: 10px; cursor: pointer; position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .calendar-day { color: #bbb; font-size: 12px; height: 32px; border-radius: 8px; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .calendar-day.empty { cursor: default; }
         .calendar-day.today { color: var(--pink); font-weight: bold; }
         
-        .calendar-day.has-event::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--cyan); border-radius: 50%; box-shadow: 0 0 6px var(--cyan); }
+        .calendar-day.has-event::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 3.5px; height: 3.5px; background-color: var(--cyan); border-radius: 50%; box-shadow: 0 0 6px var(--cyan); }
         .calendar-day.selected { background: rgba(0, 210, 255, 0.15); border: 1px solid var(--cyan); color: white; font-weight: bold; }
 
         /* --- EVENT CARD STYLING --- */
