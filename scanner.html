@@ -89,12 +89,22 @@
         'https://bbtjimaixtekzejoslfw.supabase.co', 
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY'
     );
-    const html5QrCode = new Html5Qrcode("reader");
+    
+    // SCHNITT A: Zwingt den Decoder auf Hardware-Ebene, nur QR_CODE zu akzeptieren
+    const html5QrCode = new Html5Qrcode("reader", { 
+        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
+    });
     
     html5QrCode.start(
         { facingMode: "environment" }, 
-        { fps: 15, qrbox: { width: 200, height: 200 }, formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] }, 
+        { fps: 15, qrbox: { width: 200, height: 200 } }, 
         async (decodedText) => {
+            
+            // SCHNITT B: Eiskalter Türsteher. Was kein Midus-Code oder JSON ist -> Ignorieren!
+            if (decodedText.trim() !== "midus_lounge_10" && !decodedText.includes("{")) {
+                return; 
+            }
+
             html5QrCode.stop();
             processScannedQR(decodedText);
         }
@@ -135,5 +145,3 @@
         }
     }
 </script>
-</body>
-</html>
