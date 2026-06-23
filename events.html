@@ -4,33 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Events - Midus Lounge</title>
-
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; --pink: #ff007f; }
+        :root { 
+            --bg-dark: #050505; 
+            --panel-bg: #000000; 
+            --cyan: #00d2ff; 
+            --pink: #ff007f; 
+            --border-gray: #333333;
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         
         body { background-color: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .app-container { width: 100%; max-width: 420px; height: 100dvh; max-height: 900px; background-color: var(--bg-dark); display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
-        .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
+        .header { padding: 15px 20px 8px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
+        .content { padding: 12px 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
         
-        .content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        /* --- HI-END KALENDER STYLING --- */
+        .calendar-box { width: 100%; background: var(--panel-bg); border: 1px solid var(--border-gray); border-radius: 16px; padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .calendar-nav { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 12px; font-weight: bold; font-size: 15px; }
+        .calendar-nav button { background: transparent; border: none; color: var(--cyan); font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 10px; }
+        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: #555; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+        .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 4px; }
         
-        .event-card { background: var(--panel-bg); border-radius: 16px; overflow: hidden; border: 1px solid #222; }
-        .event-banner { height: 110px; background: linear-gradient(45deg, #111, #222); display: flex; align-items: center; justify-content: center; color: var(--pink); font-weight: bold; font-size: 17px; letter-spacing: 1px; position: relative; }
-        .event-date { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); border: 1px solid var(--cyan); color: var(--cyan); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .event-body { padding: 18px; }
-        .event-body h3 { color: white; font-size: 17px; margin-bottom: 6px; }
-        .event-body p { color: #888; font-size: 13px; line-height: 1.4; }
+        .calendar-day { color: #bbb; font-size: 13px; padding: 8px 0; border-radius: 10px; cursor: pointer; position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .calendar-day.empty { cursor: default; }
+        .calendar-day.today { color: var(--pink); font-weight: bold; }
+        
+        /* Der leuchtende Event-Punkt */
+        .calendar-day.has-event::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--cyan); border-radius: 50%; box-shadow: 0 0 6px var(--cyan); }
+        .calendar-day.selected { background: rgba(0, 210, 255, 0.15); border: 1px solid var(--cyan); color: white; font-weight: bold; }
 
-        /* 5-Tab Bar Navigation */
-        .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); }
+        /* --- EVENT CARD STYLING --- */
+        #events-container { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .event-card { background: var(--panel-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-gray); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .event-banner { height: 100px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; letter-spacing: 1px; position: relative; text-align: center; padding: 0 15px; }
+        .event-date { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--cyan); color: var(--cyan); padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: bold; }
+        .event-body { padding: 15px; }
+        .event-body h3 { color: white; font-size: 16px; margin-bottom: 5px; text-align: left; }
+        .event-body p { color: #888; font-size: 13px; line-height: 1.4; text-align: left; }
+
+        /* Tab Bar Navigation */
+        .tab-bar { background-color: #151515; padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
         .tab-link { text-decoration: none; display: flex; justify-content: center; align-items: center; padding: 8px; width: 20%; }
         .tab-link svg { stroke: #555; transition: all 0.3s ease; width: 26px; height: 26px; }
         .tab-link.active svg { stroke: var(--cyan); filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.6)); }
@@ -41,55 +64,20 @@
     <div class="header">Lounge Events</div>
     
     <div class="content">
-        <div class="event-card">
-            <div class="event-banner" style="background: linear-gradient(45deg, #1a000e, #ff007f); color:#fff;">
-                GRAND OPENING
-                <span class="event-date" style="color:#fff; border-color:#fff;">DEMNÄCHST</span>
+        <div class="calendar-box">
+            <div class="calendar-nav">
+                <button id="prev-month">◀</button>
+                <span id="month-year-display">-</span>
+                <button id="next-month">▶</button>
             </div>
-            <div class="event-body">
-                <h3>The New Midus Experience</h3>
-                <p>Schrems bekommt ein neues Wohnzimmer! Feier mit uns den Start der neuen Lounge-Ära. Live-DJ, Premium Bottle-Specials und doppelter Pointz-Boost.</p>
+            <div class="calendar-weekdays">
+                <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
             </div>
+            <div class="calendar-days" id="calendar-days-grid"></div>
         </div>
 
-        <div class="event-card">
-            <div class="event-banner" style="background: linear-gradient(45deg, #001f26, #00d2ff); color: #000;">
-                 AFTERWORK ROLL THE DICE
-                <span class="event-date" style="border-color:#000; color:#000; background:rgba(255,255,255,0.2);">JEDEN DONNERSTAG</span>
-            </div>
-            <div class="event-body">
-                <h3>18:00 - 20:00 Uhr</h3>
-                <p>Würfle eine 6 und dein Getränk geht aufs Haus! 
-               (Gilt für Hugo, Wildberry Lillet, Aperol, Campari und Schremser Bier vom Fass, pro Drink 1x würfeln.)</p>
-            </div>
-        </div>
+        <div id="events-container">Lädt Events...</div>
     </div>
-
- <div class="event-card">
-            <div class="event-banner" style="background: linear-gradient(45deg, #1a000e, #ff007f); color:#fff;">
-                MIX NIGHT
-                <span class="event-date" style="color:#fff; border-color:#fff;">JEDEN FREITAG</span>
-            </div>
-            <div class="event-body">
-                <h3>20:00 - 22:00 Uhr</h3>
-                <p>Bacardi • Captain morgan • 
-42 Below Vodka • Jim Beam - Mix
- 3,5€</p>
-            </div>
-        </div>
-
- <div class="event-card">
-            <div class="event-banner" style="background: linear-gradient(45deg, #1a000e, #ff007f); color:#fff;">
-               LADIES NIGHT
-                <span class="event-date" style="color:#fff; border-color:#fff;">JEDEN FREITAG</span>
-            </div>
-            <div class="event-body">
-                <h3>20:00 - 22:00 Uhr</h3>
-                <p>Bacardi • Captain morgan • 
-42 Below Vodka • Jim Beam - Mix
- 3,5€</p>
-            </div>
-        </div>
     
     <div class="tab-bar">
         <a href="index.html" class="tab-link">
@@ -114,6 +102,175 @@
         </a>
     </div>
 </div>
+
+<script>
+    const sb = supabase.createClient(
+        'https://bbtjimaixtekzejoslfw.supabase.co', 
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY'
+    );
+
+    let allEvents = [];
+    let selectedDateStr = null; // Format: YYYY-MM-DD
+    
+    let dateObj = new Date();
+    let currentYear = dateObj.getFullYear();
+    let currentMonth = dateObj.getMonth();
+
+    const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+    async function loadEvents() {
+        const { data, error } = await sb.from('lounge_events').select('*').order('sort_order', { ascending: true });
+        if (!error && data) {
+            allEvents = data;
+            renderCalendar();
+            renderEvents();
+        }
+    }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendar-days-grid');
+        grid.innerHTML = '';
+        document.getElementById('month-year-display').innerText = `${monthNames[currentMonth]} ${currentYear}`;
+
+        let firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+        if (firstDayIndex === 0) firstDayIndex = 7; // Korrektur: Montag als 1. Wochentag kalibrieren
+
+        let totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        // Leere Slots auffüllen (Tage vor dem 1. des Monats)
+        for (let i = 1; i < firstDayIndex; i++) {
+            const blank = document.createElement('div');
+            blank.className = 'calendar-day empty';
+            grid.appendChild(blank);
+        }
+
+        // Monatstage rendern
+        const now = new Date();
+        for (let day = 1; day <= totalDays; day++) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            cell.innerText = day;
+
+            let mStr = String(currentMonth + 1).padStart(2, '0');
+            let dStr = String(day).padStart(2, '0');
+            let dateStr = `${currentYear}-${mStr}-${dStr}`;
+
+            // Heute hervorheben
+            if (now.getFullYear() === currentYear && now.getMonth() === currentMonth && now.getDate() === day) {
+                cell.classList.add('today');
+            }
+
+            // Prüfen, ob für dieses Datum ein Event existiert
+            const hasEv = allEvents.some(e => e.event_date === dateStr);
+            if (hasEv) cell.classList.add('has-event');
+
+            // Selektierten Tag markieren
+            if (selectedDateStr === dateStr) cell.classList.add('selected');
+
+            cell.onclick = () => {
+                if (selectedDateStr === dateStr) {
+                    selectedDateStr = null; // Erneuter Klick hebt Filter auf
+                } else {
+                    selectedDateStr = dateStr;
+                }
+                renderCalendar();
+                renderEvents();
+            };
+
+            grid.appendChild(cell);
+        }
+    }
+
+    function renderEvents() {
+        const container = document.getElementById('events-container');
+        container.innerHTML = '';
+
+        let filtered = allEvents;
+
+        if (selectedDateStr) {
+            // Filter-Header einblenden
+            const filterHeader = document.createElement('div');
+            filterHeader.style.cssText = "width:100%; display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 14px; border-radius:12px; border:1px solid #222; font-size:13px; margin-bottom:4px;";
+            
+            let p = selectedDateStr.split('-');
+            filterHeader.innerHTML = `<span style="color:#aaa;">Filter aktiv für: <b style="color:var(--cyan);">${p[2]}.${p[1]}.${p[0]}</b></span>
+                                      <button onclick="resetFilter()" style="background:transparent; border:none; color:var(--pink); font-size:12px; font-weight:bold; cursor:pointer;">Alle anzeigen</button>`;
+            container.appendChild(filterHeader);
+
+            // Filter anwenden (Zeige Events an diesem Tag)
+            filtered = allEvents.filter(e => e.event_date === selectedDateStr);
+
+            if (filtered.length === 0) {
+                container.innerHTML += `<p style="color:#555; text-align:center; margin:30px 0; font-size:14px; width:100%;">Keine speziellen Events für diesen Tag geplant.</p>`;
+                return;
+            }
+        }
+
+        filtered.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'event-card';
+
+            // Farb-Themes steuern
+            let gradient = "linear-gradient(45deg, #111, #222)";
+            let textCol = "var(--pink)";
+            let dateStyle = "color: var(--cyan); border-color: var(--cyan);";
+
+            if (item.theme === 'pink') {
+                gradient = "linear-gradient(45deg, #1a000e, #ff007f)";
+                textCol = "#fff";
+                dateStyle = "color:#fff; border-color:#fff;";
+            } else if (item.theme === 'cyan') {
+                gradient = "linear-gradient(45deg, #001f26, #00d2ff)";
+                textCol = "#000";
+                dateStyle = "border-color:#000; color:#000; background:rgba(255,255,255,0.2);";
+            } else if (item.theme === 'gold') {
+                gradient = "linear-gradient(45deg, #261a00, #ffaa00)";
+                textCol = "#000";
+                dateStyle = "border-color:#000; color:#000; background:rgba(255,255,255,0.2);";
+            }
+
+            // Badge/Datum formatieren
+            let badgeText = item.badge || "";
+            if (!badgeText && item.event_date) {
+                let parts = item.event_date.split('-');
+                badgeText = `${parts[2]}.${parts[1]}.`;
+            }
+
+            card.innerHTML = `
+                <div class="event-banner" style="background: ${gradient}; color: ${textCol};">
+                    ${item.title.toUpperCase()}
+                    <span class="event-date" style="${dateStyle}">${badgeText}</span>
+                </div>
+                <div class="event-body">
+                    <h3>${item.subtitle}</h3>
+                    <p>${item.description}</p>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    window.resetFilter = function() {
+        selectedDateStr = null;
+        renderCalendar();
+        renderEvents();
+    }
+
+    // Monats-Navigation Tasten
+    document.getElementById('prev-month').onclick = () => {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderCalendar();
+    };
+    document.getElementById('next-month').onclick = () => {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+    };
+
+    // System-Start
+    loadEvents();
+</script>
 
 <script>
     if ('serviceWorker' in navigator) {
