@@ -292,33 +292,80 @@
         });
     }
 
+// Erzeugt das ICS-Event: Entweder mit exakter Uhrzeit ODER als ganztägiges Fallback
     window.triggerICS = function(id) {
         const ev = allEvents.find(e => e.id == id);
         if (!ev || !ev.event_date) return; 
 
-        let dateObj = new Date(ev.event_date);
-
-        function formatICSAllday(d) {
-            return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-        }
-
-        let dtStart = formatICSAllday(dateObj);
-        let nextDayObj = new Date(dateObj.getTime() + (24 * 3600 * 1000));
-        let dtEnd = formatICSAllday(nextDayObj);
-
         let cleanTitle = (ev.title || '').replace(/,/g, '\\,').replace(/;/g, '\\;');
         let cleanSub   = (ev.subtitle || '').replace(/,/g, '\\,').replace(/;/g, '\\;');
 
-        const icsContent = [
-            "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Midus Lounge//Nonsgml Events//DE", "CALSCALE:GREGORIAN",
-            "BEGIN:VEVENT", `UID:midus-${Date.now()}@miduslounge.at`, `DTSTAMP:${dtStart}T000000Z`,
-            `DTSTART;VALUE=DATE:${dtStart}`, `DTEND;VALUE=DATE:${dtEnd}`,
-            `SUMMARY:Midus Lounge - ${cleanTitle}`, `DESCRIPTION:${cleanSub}`,
-            "LOCATION:Josef-Widy-Straße 3\\, 3943 Schrems", "STATUS:CONFIRMED",
-            "END:VEVENT", "END:VCALENDAR"
-        ].join("\r\n");
+        let icsLines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Midus Lounge//Nonsgml Events//DE",
+            "CALSCALE:GREGORIAN",
+            "BEGIN:VEVENT",
+            `UID:midus-${Date.now()}@miduslounge.at`
+        ];
 
-        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+        // MODUS A: Der Betreiber hat eine exakte Uhrzeit (z.B. "21:00") in Supabase eingetragen
+        if (ev.start_time) {
+            let [sHrs, sMin] = ev.start_time.split(':').map(Number);
+            let startDate = new Date(ev.event_date);
+            startDate.setHours(sHrs || 0, sMin || 0, 0);
+
+            let endDate = new Date(startDate.getTime());
+
+            if (ev.end_time) {
+                let [eHrs, eMin] = ev.end_time.split(':').map(Number);
+                endDate.setHours(eHrs || 0, eMin || 0, 0);
+                
+                // Mitternachts-Prüfung: Wenn Endzeit (04:00) vor Startzeit (21:00) liegt -> Folgetag!
+                if (endDate <= startDate) {
+                    endDate.setDate(endDate.getDate() + 1);
+                }
+            } else {
+                endDate.setHours(startDate.getHours() + 6); // Fallback: +6 Stunden
+            }
+
+            function formatICSTime(d) {
+                return d.getFullYear() + 
+                       String(d.getMonth() + 1).padStart(2, '0') + 
+                       String(d.getDate()).padStart(2, '0') + "T" +
+                       String(d.getHours()).padStart(2, '0') + 
+                       String(d.getMinutes()).padStart(2, '0') + "00";
+            }
+
+            let dtStart = formatICSTime(startDate);
+            let dtEnd   = formatICSTime(endDate);
+
+            icsLines.push(`DTSTAMP:${dtStart}Z`, `DTSTART:${dtStart}`, `DTEND:${dtEnd}`);
+
+        } else {
+            // MODUS B: Keine Uhrzeit angegeben -> Klassisches ganztägiges Event
+            let dateObj = new Date(ev.event_date);
+            function formatICSAllday(d) {
+                return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+            }
+            let dtStart = formatICSAllday(dateObj);
+            let nextDayObj = new Date(dateObj.getTime() + (24 * 3600 * 1000));
+            let dtEnd = formatICSAllday(nextDayObj);
+
+            icsLines.push(`DTSTAMP:${dtStart}T000000Z`, `DTSTART;VALUE=DATE:${dtStart}`, `DTEND;VALUE=DATE:${dtEnd}`);
+        }
+
+        // Gemeinsame Event-Infos
+        icsLines.push(
+            `SUMMARY:Midus Lounge - ${cleanTitle}`,
+            `DESCRIPTION:${cleanSub}`,
+            "LOCATION:Josef-Widy-Straße 3\\, 3943 Schrems",
+            "STATUS:CONFIRMED",
+            "END:VEVENT",
+            "END:VCALENDAR"
+        );
+
+        const blob = new Blob([icsLines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = `${(ev.title || 'event').toLowerCase().replace(/[^a-z0-9]/g, '_')}.ics`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
