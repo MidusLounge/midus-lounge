@@ -118,10 +118,11 @@
 
             let parts = textData.split('_');
             
-            // Sicherheits-Prüfung: Ist der Bon wirklich von eurer Kasse? (Feld 2 = Kassen-ID)
-            // HINWEIS: Falls eure Kasse intern nicht "Bar" sondern z.B. "Kasse1" heißt, das Wort hier im Code anpassen!
-            if (parts[2] !== "Bar") {
-                alert("🚨 Abgelehnt: Dieser Beleg stammt nicht von unserer Bar!");
+           // HIER TRÄGST DU DEN ECHTEN NAMEN DEINER KASSE EIN:
+            const meineKasse = "Bar"; 
+
+            if (parts[2] !== meineKasse) {
+                alert("🚨 KASSEN-CHECK FEHLGESCHLAGEN!\n\nDieser Beleg stammt von der Kasse:\n👉 '" + parts[2] + "'\n\nIm Code steht aber noch: '" + meineKasse + "'\n\nErsetze oben im Skript das Wort 'Bar' durch '" + parts[2] + "'!");
                 location.reload(); return;
             }
 
