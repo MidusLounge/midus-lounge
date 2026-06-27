@@ -21,19 +21,18 @@
         .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: bold; color: var(--cyan); border-bottom: 1px solid #111; }
         .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         
-        /* --- KATEGORIE COCKPIT --- */
         .category-bar {
             background-color: var(--bg-dark);
             padding: 10px 20px 12px;
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE */
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
             border-bottom: 1px solid #111;
             flex-shrink: 0;
         }
-        .category-bar::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+        .category-bar::-webkit-scrollbar { display: none; } 
 
         .cat-pill {
             background: #111;
@@ -56,9 +55,8 @@
             box-shadow: 0 0 12px rgba(0, 210, 255, 0.25);
         }
         
-        /* Menu Styling */
         .menu-item { background: var(--panel-bg); border-radius: 16px; padding: 15px; border: 1px solid #222; display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        .menu-item img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; }
+        .menu-item img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; background: #222; }
         .item-info { flex-grow: 1; }
         .item-info h4 { color: white; }
         .item-info p { color: #888; font-size: 12px; }
@@ -67,18 +65,16 @@
             font-weight: 700; 
             font-size: 15px; 
             text-align: right; 
-            white-space: nowrap; /* Verbietet dem €-Zeichen, in die nächste Zeile zu rutschen */
-            min-width: 75px; /* Schafft einen starren Raum, der sich niemals quetschen lässt */
-            font-variant-numeric: tabular-nums; /* MONOSPACE-ZAHLEN: Die 1 wird exakt so breit wie die 0 */
+            white-space: nowrap; 
+            min-width: 75px; 
+            font-variant-numeric: tabular-nums; 
             flex-shrink: 0; 
         }
 
-        /* Modal */
         #drink-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--panel-bg); padding: 20px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--cyan); }
-        .modal-content img { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 15px; }
+        .modal-content img { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 15px; background: #222; }
         
-        /* Tab Bar */
         .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
         .tab-link { text-decoration: none; padding: 8px; width: 20%; display: flex; justify-content: center; }
         .tab-link svg { stroke: #555; width: 26px; height: 26px; }
@@ -90,10 +86,8 @@
 <div class="app-container">
     <div class="header">Lounge Menu</div>
     
-    <!-- 1. DIE SCHWEBENDE KATEGORIE-LEISTE -->
     <div class="category-bar" id="category-bar"></div>
 
-    <!-- 2. DIE GETRÄNKE-LISTE -->
     <div class="content" id="menu-container">Lädt Menu...</div>
 
     <div id="drink-modal" onclick="this.style.display='none'">
@@ -101,7 +95,7 @@
             <img id="m-img" src="">
             <h2 id="m-title" style="color:white;"></h2>
             <p id="m-desc" style="color:#aaa;"></p>
-            <button onclick="document.getElementById('drink-modal').style.display='none'" style="background:#111; color:var(--cyan); border:1px solid var(--cyan); padding:8px 16px; border-radius:10px; margin-top:10px; cursor:pointer;">Schließen</button>
+            <button onclick="document.getElementById('drink-modal').style.display='none'" style="background:#111; color:var(--cyan); border:1px solid var(--cyan); padding:8px 16px; border-radius:10px; margin-top:15px; font-weight:bold; cursor:pointer;">Schließen</button>
         </div>
     </div>
 
@@ -118,26 +112,36 @@
     const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
     
     let allMenuItems = [];
-    let currentCat = 'all';
+    let currentCat = '';
 
-    // Hilfsfunktion: Sichert ab, falls ein Getränk keine Kategorie besitzt
     function getCleanCat(item) {
         return (item.category && item.category.trim() !== '') ? item.category.trim() : 'Sonstiges 🍸';
     }
-// Zwingt jede Zahl in ein sauberes österreichisches Format (z.B. 4.5 -> "4,50 €")
+
     function formatPrice(val) {
         if (!val) return "";
         let n = Number(String(val).replace(',', '.'));
-        if (isNaN(n)) return val; // Falls du in Supabase mal "Auf Anfrage" reinschreibst
+        if (isNaN(n)) return val; 
         return n.toFixed(2).replace('.', ',') + ' €';
     }
     
     async function loadMenu() {
         const { data } = await sb.from('menu').select('*');
-        if (data) {
+        if (data && data.length > 0) {
             allMenuItems = data;
+            
+            const uniqueCategories = [...new Set(allMenuItems.map(getCleanCat))];
+
+            // COCKTAIL-RADAR: Sucht nach "cocktail" (ignoriert Groß-/Kleinschreibung)
+            const cocktailMatch = uniqueCategories.find(cat => cat.toLowerCase().includes('cocktail'));
+            
+            // Setzt Start-Kategorie: Entweder Treffer, oder allererste Kategorie der DB
+            currentCat = cocktailMatch || uniqueCategories[0];
+
             renderCategoryPills();
             renderMenuItems();
+        } else {
+            document.getElementById('menu-container').innerHTML = '<p style="color:#666; text-align:center; margin-top:40px;">Die Karte wird gerade bestückt...</p>';
         }
     }
 
@@ -145,14 +149,6 @@
         const bar = document.getElementById('category-bar');
         bar.innerHTML = '';
 
-        // 1. Der "Alle" Button
-        const allBtn = document.createElement('button');
-        allBtn.className = `cat-pill ${currentCat === 'all' ? 'active' : ''}`;
-        allBtn.innerText = 'Alle 🍹';
-        allBtn.onclick = () => { currentCat = 'all'; renderCategoryPills(); renderMenuItems(); };
-        bar.appendChild(allBtn);
-
-        // 2. Dynamische Kategorien aus der Datenbank ziehen
         const uniqueCategories = [...new Set(allMenuItems.map(getCleanCat))];
 
         uniqueCategories.forEach(catName => {
@@ -168,10 +164,7 @@
         const container = document.getElementById('menu-container');
         container.innerHTML = '';
 
-        let itemsToRender = allMenuItems;
-        if (currentCat !== 'all') {
-            itemsToRender = allMenuItems.filter(item => getCleanCat(item) === currentCat);
-        }
+        const itemsToRender = allMenuItems.filter(item => getCleanCat(item) === currentCat);
 
         itemsToRender.forEach(item => {
             const div = document.createElement('div');
