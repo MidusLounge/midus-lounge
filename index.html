@@ -21,7 +21,7 @@
         
         #login-overlay, #birthday-setup, #redeem-overlay, #bday-voucher-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); 
-            z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; 
+            z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
         }
         
         .input-group { width: 80%; max-width: 280px; text-align: center; }
@@ -43,48 +43,21 @@
         .progress-bar-fill { height: 100%; width: 0%; background-color: var(--cyan); border-radius: 10px; transition: width 1s; }
         .timer-display { font-size: 54px; font-weight: bold; color: var(--green); margin: 20px 0; }
 
-        /* --- NEUES PRÄMIEN-SYSTEM STYLING --- */
-        .rewards-container {
-            margin: 15px 0 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            text-align: left;
-        }
+        /* --- PRÄMIEN-KARTEN STYLING --- */
+        .rewards-container { margin: 15px 0 10px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
         .reward-item {
-            background: #0a0a0a;
-            border: 1px solid #222;
-            padding: 10px 12px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            opacity: 0.4; /* Standardmäßig ausgegraut */
+            background: #0a0a0a; border: 1px solid #222; padding: 12px; border-radius: 12px;
+            display: flex; align-items: center; gap: 10px; transition: all 0.2s ease; opacity: 0.35;
         }
         .reward-item.unlocked {
-            opacity: 1;
-            border-color: rgba(0, 210, 255, 0.4);
-            background: rgba(0, 210, 255, 0.05);
+            opacity: 1; border-color: var(--cyan); background: rgba(0, 210, 255, 0.08);
+            cursor: pointer; box-shadow: 0 0 12px rgba(0, 210, 255, 0.15);
         }
-        .reward-pts {
-            font-weight: 800;
-            font-size: 12px;
-            color: #555;
-            min-width: 52px;
-        }
-        .reward-item.unlocked .reward-pts {
-            color: var(--cyan);
-        }
-        .reward-desc {
-            font-size: 12px;
-            color: #ccc;
-            line-height: 1.3;
-            flex-grow: 1;
-        }
-        .reward-status {
-            font-size: 14px;
-        }
+        .reward-item.unlocked:active { transform: scale(0.97); }
+        .reward-pts { font-weight: 800; font-size: 12px; color: #555; min-width: 50px; }
+        .reward-item.unlocked .reward-pts { color: var(--cyan); }
+        .reward-desc { font-size: 12px; color: #ccc; line-height: 1.3; flex-grow: 1; }
+        .reward-status { font-size: 12px; font-weight: bold; }
 
         .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
         .tab-link { text-decoration: none; padding: 8px; width: 20%; display: flex; justify-content: center; }
@@ -118,8 +91,11 @@
         <button onclick="closeBdayVoucher()">Einlösen bestätigt</button>
     </div>
 
+    <!-- DYNAMISCHER KELLNER-SCREEN FÜR DIE PRÄMIEN -->
     <div id="redeem-overlay">
-        <h1 style="color: white; font-size: 28px;">1 Freigetränk</h1>
+        <p style="color:#aaa; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Eingelöste Prämie</p>
+        <h1 style="color: white; font-size: 22px; margin-top: 5px; max-width: 90%;" id="redeem-drink-title">Drink</h1>
+        <p style="color:var(--cyan); font-size:12px; font-weight:bold; margin-top:15px;">⚠️ BEIM PERSONAL VORZEIGEN</p>
         <div class="timer-display" id="countdown-clock">05:00</div>
         <button onclick="closeRedeemOverlay()" style="background: var(--green);">Erledigt</button>
     </div>
@@ -135,7 +111,6 @@
             <button id="bday-claim-btn" onclick="openBdayVoucher()">🍹 Gratis Drink abholen!</button>
             <p id="bday-warning" style="font-size: 11px; color: var(--pink); margin-bottom: 15px; display: none;">⚠️ Dieser Gutschein ist ab deinem Geburtstag 1 Woche lang gültig!</p>
             
-            <!-- --- NEUE PRÄMIEN-KARTE --- -->
             <div class="rewards-container">
                 <div class="reward-item" id="rew-50">
                     <span class="reward-pts">50 Pts</span>
@@ -159,8 +134,7 @@
                 </div>
             </div>
 
-            <p style="font-size: 11px; color: #aaa; margin-bottom: 10px;">⚠️ Erst vor dem Personal klicken! <b style="color:var(--cyan);">Gilt dann 5 Minuten.</b></p>
-            <button id="redeem-btn" onclick="redeemPoints()" disabled>500 Pkt einlösen</button>
+            <p style="font-size: 11px; color: #888; margin-top: 5px;">Klicke auf eine leuchtende Prämie, um sie an der Bar einzulösen.</p>
             <button onclick="logout()" style="background:transparent; border:none; color:#666; font-size:12px; margin-top:15px; cursor:pointer;">Abmelden</button>
         </div>
     </div>
@@ -177,17 +151,40 @@
 <script>
     const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
     let countdownInterval;
+    
+    const rewardNames = {
+        50: "Spritzer weiß 0,25l oder Schremser Seidel 0,3l 🍷🍺",
+        150: "1 Longdrink deiner Wahl (oder 2 Shots!) 🍹🥃",
+        300: "1 Premium Cocktail oder 10€ Bar-Gutschein 🍸💶",
+        500: "Exklusives M Lounge Goodie 👑🎁"
+    };
+
     async function login() { const email = document.getElementById('email-input').value.trim().toLowerCase(); if(!email) return; const { data } = await sb.from('vip_guests').select('*').eq('email', email); if (data.length === 0) await sb.from('vip_guests').insert([{ email: email, points: 0 }]); localStorage.setItem('midus_user', email); checkProfile(email); }
     async function checkProfile(email) { const { data } = await sb.from('vip_guests').select('birth_date').eq('email', email).single(); if (!data || !data.birth_date) { document.getElementById('birthday-setup').style.display = 'flex'; document.getElementById('login-overlay').style.display = 'none'; } else { location.reload(); } }
     async function saveBirthday() { const birthDate = document.getElementById('birth-date-input').value; if(!birthDate) return; await sb.from('vip_guests').update({ birth_date: birthDate }).eq('email', localStorage.getItem('midus_user')); location.reload(); }
     function openBdayVoucher() { document.getElementById('bday-voucher-overlay').style.display = 'flex'; startTimer('bday-timer', 300, () => location.reload()); }
     function closeBdayVoucher() { clearInterval(countdownInterval); const email = localStorage.getItem('midus_user'); localStorage.setItem('midus_cocktail_claim_' + new Date().getFullYear() + '_' + email, 'true'); location.reload(); }
-    async function redeemPoints() { const email = localStorage.getItem('midus_user'); const { data } = await sb.from('vip_guests').select('points').eq('email', email).single(); if (data.points < 500) return; if (!confirm("Einlösen?")) return; await sb.from('vip_guests').update({ points: data.points - 500 }).eq('email', email); document.getElementById('redeem-overlay').style.display = 'flex'; startTimer('countdown-clock', 300, () => location.reload()); }
-    function startTimer(id, dur, cb) { let t = dur; countdownInterval = setInterval(() => { let m = parseInt(t/60), s = parseInt(t%60); document.getElementById(id).textContent = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s); if (--t < 0) { clearInterval(countdownInterval); cb(); } }, 1000); }
-    function closeRedeemOverlay() { clearInterval(countdownInterval); location.reload(); }
-    function logout() { localStorage.removeItem('midus_user'); location.reload(); }
     
-    // GAMIFICATION: Schaltet Prämien optisch frei
+    // DIE NEUE EINLÖSE-CHIRURGIE:
+    async function claimTier(cost) {
+        const email = localStorage.getItem('midus_user');
+        if (!email) return;
+
+        const { data } = await sb.from('vip_guests').select('points').eq('email', email).single();
+        if (!data || data.points < cost) return;
+
+        if (!confirm(`Möchtest du ${cost} Punkte für:\n\n"${rewardNames[cost]}"\n\neinlösen?`)) return;
+
+        const newPts = data.points - cost;
+        const { error } = await sb.from('vip_guests').update({ points: newPts }).eq('email', email);
+
+        if (error) { alert("Fehler beim Abbuchen!"); return; }
+
+        document.getElementById('redeem-drink-title').innerText = rewardNames[cost];
+        document.getElementById('redeem-overlay').style.display = 'flex';
+        startTimer('countdown-clock', 300, () => location.reload());
+    }
+
     function updateRewardUI(pts) {
         const tiers = [50, 150, 300, 500];
         tiers.forEach(t => {
@@ -195,13 +192,19 @@
             const st = document.getElementById('stat-' + t);
             if (pts >= t) {
                 el.classList.add('unlocked');
-                st.innerText = '✅';
+                st.innerHTML = '<span style="color:var(--cyan); font-size:10px; border:1px solid var(--cyan); padding:4px 6px; border-radius:6px;">🎁 EINLÖSEN</span>';
+                el.onclick = () => claimTier(t);
             } else {
                 el.classList.remove('unlocked');
                 st.innerText = '🔒';
+                el.onclick = null;
             }
         });
     }
+
+    function startTimer(id, dur, cb) { let t = dur; countdownInterval = setInterval(() => { let m = parseInt(t/60), s = parseInt(t%60); document.getElementById(id).textContent = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s); if (--t < 0) { clearInterval(countdownInterval); cb(); } }, 1000); }
+    function closeRedeemOverlay() { clearInterval(countdownInterval); location.reload(); }
+    function logout() { localStorage.removeItem('midus_user'); location.reload(); }
 
     const u = localStorage.getItem('midus_user'); 
     if(u) { 
@@ -213,36 +216,18 @@
                 let p = (pts/500)*100; 
                 document.getElementById('progress-fill').style.width = Math.min(p, 100) + '%'; 
                 
-                updateRewardUI(pts); // Checkt sofort, welche Stufen leuchten dürfen!
-
-                if (pts >= 500) document.getElementById('redeem-btn').disabled = false; 
+                updateRewardUI(pts);
 
                 if (r.data.birth_date) { 
                     let bStr = r.data.birth_date.trim();
                     let bM, bD;
-                    if (bStr.includes('-')) {
-                        let parts = bStr.split('-');
-                        bM = parseInt(parts[1], 10) - 1;
-                        bD = parseInt(parts[2], 10);
-                    } else if (bStr.includes('.')) {
-                        let parts = bStr.split('.');
-                        bD = parseInt(parts[0], 10);
-                        bM = parseInt(parts[1], 10) - 1;
-                    } else {
-                        let dObj = new Date(bStr);
-                        bM = dObj.getMonth();
-                        bD = dObj.getDate();
-                    }
+                    if (bStr.includes('-')) { let parts = bStr.split('-'); bM = parseInt(parts[1], 10) - 1; bD = parseInt(parts[2], 10); } 
+                    else if (bStr.includes('.')) { let parts = bStr.split('.'); bD = parseInt(parts[0], 10); bM = parseInt(parts[1], 10) - 1; } 
+                    else { let dObj = new Date(bStr); bM = dObj.getMonth(); bD = dObj.getDate(); }
 
-                    const now = new Date();
-                    const y = now.getFullYear();
-                    const todayMs = new Date(y, now.getMonth(), now.getDate()).getTime();
-                    const bdayMs = new Date(y, bM, bD).getTime();
-                    const diffDays = Math.round((todayMs - bdayMs) / 86400000);
-
-                    const lockKey = 'midus_cocktail_claim_' + y + '_' + u;
-
-                    if (diffDays >= 0 && diffDays <= 7 && !localStorage.getItem(lockKey)) {
+                    const now = new Date(); const y = now.getFullYear();
+                    const diffDays = Math.round((new Date(y, now.getMonth(), now.getDate()).getTime() - new Date(y, bM, bD).getTime()) / 86400000);
+                    if (diffDays >= 0 && diffDays <= 7 && !localStorage.getItem('midus_cocktail_claim_' + y + '_' + u)) {
                         document.getElementById('bday-claim-btn').style.display = 'flex';
                         document.getElementById('bday-warning').style.display = 'block';
                     }
@@ -253,11 +238,7 @@
 </script>
 
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js');
-        });
-    }
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
 </script>
 </body>
 </html>
