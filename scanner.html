@@ -89,7 +89,7 @@
         async (decodedText) => {
             let clean = decodedText.trim();
             
-            // TÜRSTEHER: Lässt exakt 3 Dinge durch: Festcode (midus_10), JSON (Kellner-Scan) oder Österreichischen Kassenbon (_R1-AT)
+            // LAUTLOSER TÜRSTEHER: Lässt exakt 3 Dinge durch: Kellner-Festcode, Kellner-Scan-JSON oder echten M-Lounge-Kassenbon
             if (clean !== "midus_lounge_10" && !clean.includes("{") && !clean.startsWith("_R1-AT")) {
                 return; 
             }
@@ -100,7 +100,7 @@
     ).then(() => { document.getElementById('status').innerText = "📸 Halte Bon oder VIP-Code ins Feld."; })
      .catch(err => { console.error(err); document.getElementById('status').innerText = "⚠️ Kamerazugriff verweigert."; document.getElementById('status').style.color = "#ff3333"; });
 
-  async function processScannedQR(textData) {
+    async function processScannedQR(textData) {
         const statusEl = document.getElementById('status');
         statusEl.innerText = "Beleg wird entschlüsselt...";
         statusEl.style.color = "var(--cyan)";
@@ -108,7 +108,7 @@
         let email, pointsToAdd = 0, umsatz = 0;
         const loggedInUser = localStorage.getItem('midus_user');
 
-        // MODUS 1: Österreichischer RKSV-Kassenbon
+        // MODUS 1: Österreichischer RKSV-Kassenbon aus Schrems
         if (textData.startsWith("_R1-AT")) {
             if (!loggedInUser) {
                 alert("Bitte melde dich zuerst an, um Bons einzulösen!");
@@ -118,13 +118,13 @@
 
             let parts = textData.split('_');
             
-            // DIE ECHTE KASSEN-ID:
+            // ABGLEICH MIT EURER ECHTEN KASSEN-DNA:
             if (parts[2] !== "6MiQF1") {
                 alert("🚨 ABGELEHNT: Dieser Beleg stammt nicht von uns!");
                 location.reload(); return;
             }
 
-            let fingerprint = `${parts[2]}_${parts[3]}_${parts[4]}`; // Kasse_BelegNr_Zeit
+            let fingerprint = `${parts[2]}_${parts[3]}_${parts[4]}`; // Kasse_BelegNr_Zeitstempel
 
             // 1. Doppel-Scan Sperre via Supabase
             const { data: claimData } = await sb.from('claimed_receipts').select('id').eq('fingerprint', fingerprint).single();
@@ -133,7 +133,7 @@
                 location.reload(); return;
             }
 
-            // 2. Brutto-Umsatz auslesen (Ersetzt österreichische Kommas durch Punkte für JS-Mathematik!)
+            // 2. Brutto-Umsatz auslesen (Konvertiert österreichische Kommas in mathematische Punkte!)
             const p5 = parseFloat((parts[5]||"0").replace(',', '.'));
             const p6 = parseFloat((parts[6]||"0").replace(',', '.'));
             const p7 = parseFloat((parts[7]||"0").replace(',', '.'));
@@ -148,77 +148,7 @@
                 location.reload(); return;
             }
 
-            // 3. Bon in Supabase dauerhaft verbrennen
-            await sb.from('claimed_receipts').insert([{ fingerprint: fingerprint }]);
-
-            email = loggedInUser;
-
-        } else if (textData === "midus_lounge_10") {
-            // MODUS 2: 10er Festcode vom Kellner
-            if (!loggedInUser) { alert("Bitte melde dich an!"); window.location.href = "index.html"; return; }
-            email = loggedInUser;
-            pointsToAdd = 10;
-        } else {
-            // MODUS 3: Kellner scannt Gäste-Handy
-            try {
-                const jsonObj = JSON.parse(textData);
-                email = jsonObj.email.trim().toLowerCase();
-                pointsToAdd = parseInt(jsonObj.points) || 10;
-            } catch(e) { email = textData.trim().toLowerCase(); pointsToAdd = 10; }
-        }
-        
-        if (!email) { alert("Fehler: Keine VIP-Daten gefunden."); location.reload(); return; }
-
-        const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
-        
-        if (error) { 
-            alert("Gast-Konto nicht gefunden: '" + email + "'"); location.reload(); 
-        } else {
-            let oldPts = data.points || 0;
-            await sb.from('vip_guests').update({ points: oldPts + pointsToAdd }).eq('email', email);
-            
-            if (textData.startsWith("_R1-AT")) {
-                alert(`🎉 BON ERFASST!\n\nUmsatz: ${umsatz.toFixed(2).replace('.',',')} €\nDir wurden exakt +${pointsToAdd} Punkte gebucht!`);
-            } else if (textData === "midus_lounge_10") { 
-                alert("BÄM! 🍹 10 Pointz gutgeschrieben."); 
-            } else { 
-                alert(`Erfolg! ${pointsToAdd} Pointz für ${email} gebucht.`); 
-            }
-            
-            window.location.href = "index.html";
-        }
-    }
-
-            let parts = textData.split('_');
-            
-           // HIER TRÄGST DU DEN ECHTEN NAMEN DEINER KASSE EIN:
-            const meineKasse = "Bar"; 
-
-            if (parts[2] !== meineKasse) {
-                alert("🚨 KASSEN-CHECK FEHLGESCHLAGEN!\n\nDieser Beleg stammt von der Kasse:\n👉 '" + parts[2] + "'\n\nIm Code steht aber noch: '" + meineKasse + "'\n\nErsetze oben im Skript das Wort 'Bar' durch '" + parts[2] + "'!");
-                location.reload(); return;
-            }
-
-            let fingerprint = `${parts[2]}_${parts[3]}_${parts[4]}`; // Kasse_BelegNr_Zeit
-
-            // 1. Prüfen ob Bon schon in Supabase existiert
-            const { data: claimData } = await sb.from('claimed_receipts').select('id').eq('fingerprint', fingerprint).single();
-            if (claimData) {
-                alert("🚨 BUSTED: Dieser Kassenbon wurde bereits eingelöst!");
-                location.reload(); return;
-            }
-
-            // 2. Brutto-Umsatz auslesen (Steuersätze 20%, 10%, 13%, 0%, 19%)
-            let umsatz = parseFloat(parts[5]||0) + parseFloat(parts[6]||0) + parseFloat(parts[7]||0) + parseFloat(parts[8]||0) + parseFloat(parts[9]||0);
-            
-            pointsToAdd = Math.round(umsatz); // Kaufmännische Rundung: 8.49 -> 8, 8.50 -> 9
-
-            if (pointsToAdd <= 0) {
-                alert("Fehler: Bon-Umsatz beträgt 0,00 €");
-                location.reload(); return;
-            }
-
-            // 3. Bon in Supabase dauerhaft als "Eingelöst" verbrennen
+            // 3. Beleg-Fingerabdruck in Supabase für immer verriegeln
             await sb.from('claimed_receipts').insert([{ fingerprint: fingerprint }]);
 
             email = loggedInUser;
@@ -239,7 +169,6 @@
         
         if (!email) { alert("Fehler: Keine VIP-Daten gefunden."); location.reload(); return; }
 
-        // Punkte auf das VIP-Konto schießen
         const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
         
         if (error) { 
