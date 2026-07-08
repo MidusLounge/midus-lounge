@@ -24,7 +24,6 @@
         
         .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: 800; color: var(--cyan); border-bottom: 1px solid #1a1a1a; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
         
-        /* ABSTAND ZWISCHEN DEN SCHLANKEN BOXEN: Sportliche 8px */
         .content { padding: 16px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         
         .category-bar {
@@ -59,22 +58,22 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
         }
         
-        /* --- DIE NEUEN ULTRA-SLEEK BOXEN (NUR NAME & PREIS!) --- */
+        /* --- HIGH-END SLEEK BOXEN --- */
         .menu-item { 
             background: var(--panel-bg); 
             border-radius: 12px; 
-            padding: 14px 18px; /* Perfekt ausbalanciert für eine reine Textzeile */
+            padding: 14px 18px; 
             border: 1px solid #1e1e1e;
             border-left-width: 4px; 
             display: flex; 
             justify-content: space-between;
-            align-items: center; /* Haargenaue vertikale Zentrierung */
+            align-items: center; 
             gap: 15px; 
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
-            min-height: 50px; /* Schlank, sportlich, edel */
+            min-height: 50px; 
         }
         .menu-item:active { transform: scale(0.98); }
         
@@ -101,7 +100,6 @@
             z-index: 1;
         }
 
-        /* MODAL (Hieran öffnet sich die Zutaten-Lupe!) */
         #drink-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--panel-bg); padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 340px; text-align: center; border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); }
         .modal-content h2 { font-size: 22px; margin-bottom: 12px; color: #fff; }
@@ -156,7 +154,7 @@
         return n.toFixed(2).replace('.', ',') + ' €';
     }
 
-    // DIE 10-FARBEN CYBER MATRIX + HASH FALLSCHIRM
+    // DIE EXAKTE NEON-FARBEN MATRIX FÜR DEINE 9 KATEGORIEN
     const neonPalette = [
         '#00d2ff', // 0: Cyan
         '#ff007f', // 1: Hot Pink
@@ -172,19 +170,49 @@
 
     function getNeonColorForCategory(catName) {
         const lower = catName.toLowerCase();
-        if (lower.includes('cocktail')) return '#00d2ff';      // Cyan
-        if (lower.includes('shot')) return '#ff007f';          // Pink
-        if (lower.includes('bier') || lower.includes('seidel')) return '#00ff66'; // Green
-        if (lower.includes('longdrink')) return '#ffaa00';     // Solar Gold
-        if (lower.includes('alkoholfrei') || lower.includes('soft')) return '#00ffcc'; // Mint
-        if (lower.includes('gin')) return '#b800ff';           // Cyber Purple
-        if (lower.includes('rum') || lower.includes('whisky')) return '#ff3333'; // Laser Red
-        if (lower.includes('wein') || lower.includes('spritzer') || lower.includes('prosecco')) return '#cc00ff'; // Violet
-        if (lower.includes('snack') || lower.includes('essen')) return '#e6ff00'; // Acid Yellow
+        if (lower.includes('cocktail') && !lower.includes('mocktail')) return '#00d2ff'; // Cyan
+        if (lower.includes('mocktail') || lower.includes('alkoholfrei')) return '#00ffcc'; // Mint Turquoise
+        if (lower.includes('longdrink')) return '#ffaa00';                                 // Solar Gold
+        if (lower.includes('shot')) return '#ff007f';                                      // Hot Pink
+        if (lower.includes('bier') || lower.includes('seidel')) return '#00ff66';          // Acid Green
+        if (lower.includes('wein') || lower.includes('spritz')) return '#cc00ff';          // Electric Violet
+        if (lower.includes('softdrink') || lower.includes('limo')) return '#0088ff';       // Deep Cyber Blue
+        if (lower.includes('kaffee') || lower.includes('tee') || lower.includes('coffee')) return '#ff3333'; // Laser Red
+        if (lower.includes('snack') || lower.includes('essen') || lower.includes('toast')) return '#e6ff00'; // Acid Yellow
         
         let hash = 0;
         for (let i = 0; i < catName.length; i++) hash = catName.charCodeAt(i) + ((hash << 5) - hash);
         return neonPalette[Math.abs(hash) % neonPalette.length];
+    }
+
+    // DER MASTER-MAGNET: Sortiert deine Kategorien haargenau in deiner Wunsch-Reihenfolge!
+    function getSortedCategories() {
+        const unique = [...new Set(allMenuItems.map(getCleanCat))];
+        
+        const masterOrder = [
+            'cocktail',
+            'mocktail',
+            'longdrink',
+            'shot',
+            'bier',
+            'wein',
+            'spritz',
+            'softdrink',
+            'kaffee',
+            'tee',
+            'snack'
+        ];
+
+        return unique.sort((a, b) => {
+            let idxA = masterOrder.findIndex(key => a.toLowerCase().includes(key));
+            let idxB = masterOrder.findIndex(key => b.toLowerCase().includes(key));
+            
+            // Falls eine Kategorie unbekannt ist, wandert sie ans Ende
+            if (idxA === -1) idxA = 999;
+            if (idxB === -1) idxB = 999;
+            
+            return idxA - idxB;
+        });
     }
     
     async function loadMenu() {
@@ -192,9 +220,9 @@
         if (data && data.length > 0) {
             allMenuItems = data;
             
-            const uniqueCategories = [...new Set(allMenuItems.map(getCleanCat))];
-            const cocktailMatch = uniqueCategories.find(cat => cat.toLowerCase().includes('cocktail'));
-            currentCat = cocktailMatch || uniqueCategories[0];
+            const sortedCategories = getSortedCategories();
+            // Startet standardmäßig auf dem allerersten Reiter (Cocktails!)
+            currentCat = sortedCategories[0];
 
             renderCategoryPills();
             renderMenuItems();
@@ -207,9 +235,9 @@
         const bar = document.getElementById('category-bar');
         bar.innerHTML = '';
 
-        const uniqueCategories = [...new Set(allMenuItems.map(getCleanCat))];
+        const sortedCategories = getSortedCategories();
 
-        uniqueCategories.forEach(catName => {
+        sortedCategories.forEach(catName => {
             const btn = document.createElement('button');
             const isActive = currentCat === catName;
             const catColor = getNeonColorForCategory(catName);
@@ -234,7 +262,7 @@
 
         const itemsToRender = allMenuItems.filter(item => getCleanCat(item) === currentCat);
         
-        // --- DIE ALPHABETISCHE SORTIERUNG (A bis Z inkl. Ö, Ä, Ü) ---
+        // --- ALPHABETISCHE SORTIERUNG INNEN (A bis Z inkl. Ö, Ä, Ü) ---
         itemsToRender.sort((a, b) => a.name.localeCompare(b.name, 'de'));
         // -------------------------------------------------------------
 
