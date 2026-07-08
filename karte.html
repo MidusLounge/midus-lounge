@@ -17,9 +17,6 @@
             --bg-dark: #050505; 
             --panel-bg: #121212; 
             --cyan: #00d2ff; 
-            --pink: #ff007f; 
-            --green: #00ff66;
-            --purple: #b800ff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -27,8 +24,8 @@
         
         .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: 800; color: var(--cyan); border-bottom: 1px solid #1a1a1a; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
         
-        /* ABSTAND ZWISCHEN BOXEN REDUZIERT (8px statt 14px): Wirkt kompakter & edler! */
-        .content { padding: 15px 16px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        /* ABSTAND ZWISCHEN DEN SCHLANKEN BOXEN: Sportliche 8px */
+        .content { padding: 16px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         
         .category-bar {
             background-color: var(--bg-dark);
@@ -59,27 +56,25 @@
         }
         .cat-pill.active {
             color: white;
-            border-color: var(--cyan);
-            background: rgba(0, 210, 255, 0.1);
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
         }
         
-        /* --- DIE NEUEN, PERFEKT PROPORTIONIERTEN BOXEN --- */
+        /* --- DIE NEUEN ULTRA-SLEEK BOXEN (NUR NAME & PREIS!) --- */
         .menu-item { 
             background: var(--panel-bg); 
-            border-radius: 10px; 
-            padding: 12px 16px; /* Strafferes, eleganteres Padding */
+            border-radius: 12px; 
+            padding: 14px 18px; /* Perfekt ausbalanciert für eine reine Textzeile */
             border: 1px solid #1e1e1e;
             border-left-width: 4px; 
             display: flex; 
             justify-content: space-between;
-            align-items: center; /* Zentriert Preis und Text exakt vertikal */
+            align-items: center; /* Haargenaue vertikale Zentrierung */
             gap: 15px; 
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
-            min-height: 60px; /* GARANTIERTE MINDESTHÖHE: Kein Einfallen von leeren Boxen! */
+            min-height: 50px; /* Schlank, sportlich, edel */
         }
         .menu-item:active { transform: scale(0.98); }
         
@@ -91,14 +86,13 @@
             pointer-events: none;
         }
 
-        .item-info { flex-grow: 1; z-index: 1; display: flex; flex-direction: column; justify-content: center; }
-        .item-info h4 { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.2; }
-        .item-info p { color: #888; font-size: 12px; line-height: 1.3; margin-top: 4px; }
+        .item-info { flex-grow: 1; z-index: 1; display: flex; align-items: center; }
+        .item-info h4 { color: #fff; font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
         
         .price { 
             color: #fff; 
             font-weight: 800; 
-            font-size: 15px; 
+            font-size: 16px; 
             text-align: right; 
             white-space: nowrap; 
             min-width: 70px; 
@@ -107,10 +101,11 @@
             z-index: 1;
         }
 
+        /* MODAL (Hieran öffnet sich die Zutaten-Lupe!) */
         #drink-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--panel-bg); padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 340px; text-align: center; border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); }
-        .modal-content h2 { font-size: 22px; margin-bottom: 10px; color: #fff; }
-        .modal-content p { font-size: 14px; line-height: 1.5; color: #aaa; margin-bottom: 20px; }
+        .modal-content h2 { font-size: 22px; margin-bottom: 12px; color: #fff; }
+        .modal-content p { font-size: 14px; line-height: 1.6; color: #bbb; margin-bottom: 24px; }
         
         .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
         .tab-link { text-decoration: none; padding: 8px; width: 20%; display: flex; justify-content: center; }
@@ -161,12 +156,36 @@
         return n.toFixed(2).replace('.', ',') + ' €';
     }
 
+    // DIE 10-FARBEN CYBER MATRIX + HASH FALLSCHIRM
+    const neonPalette = [
+        '#00d2ff', // 0: Cyan
+        '#ff007f', // 1: Hot Pink
+        '#00ff66', // 2: Acid Green
+        '#ffaa00', // 3: Solar Gold
+        '#00ffcc', // 4: Mint Turquoise
+        '#b800ff', // 5: Cyber Purple
+        '#ff3333', // 6: Laser Red
+        '#cc00ff', // 7: Electric Violet
+        '#e6ff00', // 8: Acid Yellow
+        '#0088ff'  // 9: Deep Cyber Blue
+    ];
+
     function getNeonColorForCategory(catName) {
         const lower = catName.toLowerCase();
-        if (lower.includes('cocktail') || lower.includes('gin') || lower.includes('longdrink')) return '#00d2ff'; 
-        if (lower.includes('shot') || lower.includes('vodka') || lower.includes('spirit') || lower.includes('rum')) return '#ff007f'; 
-        if (lower.includes('bier') || lower.includes('spritzer') || lower.includes('wein') || lower.includes('seidel')) return '#00ff66'; 
-        return '#b800ff'; 
+        if (lower.includes('cocktail')) return '#00d2ff';      // Cyan
+        if (lower.includes('shot')) return '#ff007f';          // Pink
+        if (lower.includes('bier') || lower.includes('seidel')) return '#00ff66'; // Green
+        if (lower.includes('longdrink')) return '#ffaa00';     // Solar Gold
+        if (lower.includes('alkoholfrei') || lower.includes('soft')) return '#00ffcc'; // Mint
+        if (lower.includes('gin')) return '#b800ff';           // Cyber Purple
+        if (lower.includes('rum') || lower.includes('whisky')) return '#ff3333'; // Laser Red
+        if (lower.includes('wein') || lower.includes('spritzer') || lower.includes('prosecco')) return '#cc00ff'; // Violet
+        if (lower.includes('snack') || lower.includes('essen')) return '#e6ff00'; // Acid Yellow
+        
+        // Hash-Generator: Berechnet für JEDE andere Kategorie automatisch eine eigene Neon-Farbe!
+        let hash = 0;
+        for (let i = 0; i < catName.length; i++) hash = catName.charCodeAt(i) + ((hash << 5) - hash);
+        return neonPalette[Math.abs(hash) % neonPalette.length];
     }
     
     async function loadMenu() {
@@ -224,19 +243,15 @@
             div.style.borderLeftColor = activeColor;
             div.style.boxShadow = `-4px 0 15px -2px ${activeColor}33`;
             
-            // INTELLIGENTES RENDERN: Wenn keine Beschreibung da ist, wird <p> gar nicht erst ins HTML generiert!
-            const descHtml = (item.description && item.description.trim() !== '') 
-                ? `<p>${item.description.trim()}</p>` 
-                : '';
-
+            // CHIRURGISCH GEREINIGT: Nur Name & Preis in der Box!
             div.innerHTML = `
                 <div class="item-info">
                     <h4>${item.name}</h4>
-                    ${descHtml}
                 </div>
                 <div class="price" style="color: ${activeColor};">${formatPrice(item.price)}</div>
             `;
             
+            // Bei Klick öffnet sich das Modal mit den Zutaten:
             div.onclick = () => {
                 document.getElementById('m-title').innerText = item.name;
                 document.getElementById('m-desc').innerText = item.description || 'Keine nähere Beschreibung verfügbar.';
