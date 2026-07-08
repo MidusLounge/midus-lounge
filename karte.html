@@ -230,10 +230,16 @@
     }
 
     function renderMenuItems() {
+        function renderMenuItems() {
         const container = document.getElementById('menu-container');
         container.innerHTML = '';
 
         const itemsToRender = allMenuItems.filter(item => getCleanCat(item) === currentCat);
+        
+        // --- NEU: ALPHABETISCHE SORTIERUNG (A bis Z inkl. Ä, Ö, Ü) ---
+        itemsToRender.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+        // -------------------------------------------------------------
+
         const activeColor = getNeonColorForCategory(currentCat);
 
         itemsToRender.forEach(item => {
