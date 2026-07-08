@@ -182,7 +182,6 @@
         if (lower.includes('wein') || lower.includes('spritzer') || lower.includes('prosecco')) return '#cc00ff'; // Violet
         if (lower.includes('snack') || lower.includes('essen')) return '#e6ff00'; // Acid Yellow
         
-        // Hash-Generator: Berechnet für JEDE andere Kategorie automatisch eine eigene Neon-Farbe!
         let hash = 0;
         for (let i = 0; i < catName.length; i++) hash = catName.charCodeAt(i) + ((hash << 5) - hash);
         return neonPalette[Math.abs(hash) % neonPalette.length];
@@ -230,13 +229,12 @@
     }
 
     function renderMenuItems() {
-        function renderMenuItems() {
         const container = document.getElementById('menu-container');
         container.innerHTML = '';
 
         const itemsToRender = allMenuItems.filter(item => getCleanCat(item) === currentCat);
         
-        // --- NEU: ALPHABETISCHE SORTIERUNG (A bis Z inkl. Ä, Ö, Ü) ---
+        // --- DIE ALPHABETISCHE SORTIERUNG (A bis Z inkl. Ö, Ä, Ü) ---
         itemsToRender.sort((a, b) => a.name.localeCompare(b.name, 'de'));
         // -------------------------------------------------------------
 
@@ -249,7 +247,6 @@
             div.style.borderLeftColor = activeColor;
             div.style.boxShadow = `-4px 0 15px -2px ${activeColor}33`;
             
-            // CHIRURGISCH GEREINIGT: Nur Name & Preis in der Box!
             div.innerHTML = `
                 <div class="item-info">
                     <h4>${item.name}</h4>
@@ -257,7 +254,6 @@
                 <div class="price" style="color: ${activeColor};">${formatPrice(item.price)}</div>
             `;
             
-            // Bei Klick öffnet sich das Modal mit den Zutaten:
             div.onclick = () => {
                 document.getElementById('m-title').innerText = item.name;
                 document.getElementById('m-desc').innerText = item.description || 'Keine nähere Beschreibung verfügbar.';
