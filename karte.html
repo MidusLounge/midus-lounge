@@ -85,7 +85,9 @@
         }
 
         .item-info { flex-grow: 1; z-index: 1; display: flex; align-items: center; }
-        .item-info h4 { color: #fff; font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+        
+        /* SCHRIFT ETWAS GEDÄMPFT (BLENDFREIES HELLGRAU) */
+        .item-info h4 { color: #d0d0d0; font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
         
         .price { 
             color: #fff; 
@@ -170,8 +172,7 @@
     function getNeonColorForCategory(catName) {
         const lower = catName.toLowerCase();
         
-        // EDLES GOLD FÜR SPECIALS:
-        if (lower.includes('special')) return '#ffd700'; 
+        if (lower.includes('special')) return '#ffd700'; // Edles Gold
         
         if (lower.includes('cocktail') && !lower.includes('mocktail')) return '#00d2ff'; 
         if (lower.includes('mocktail') || lower.includes('alkoholfrei')) return '#00ffcc'; 
@@ -279,7 +280,6 @@
             const div = document.createElement('div');
             div.className = 'menu-item';
             
-            // VOLLSTÄNDIGE FARBIGE UMRAHMUNG:
             div.style.borderColor = activeColor;
             div.style.boxShadow = `0 0 12px ${activeColor}33`;
             
