@@ -156,42 +156,47 @@
         return n.toFixed(2).replace('.', ',') + ' €';
     }
 
-    // DIE EXAKTE 10-FARBEN NEON-MATRIX
+    // DIE EXAKTE NEON-FARBEN MATRIX 
     const neonPalette = [
-        '#00d2ff', // 0: Cyan
-        '#ff007f', // 1: Hot Pink
-        '#00ff66', // 2: Acid Green
-        '#ffaa00', // 3: Solar Gold
-        '#00ffcc', // 4: Mint Turquoise
-        '#b800ff', // 5: Cyber Purple
-        '#ff3333', // 6: Laser Red
-        '#cc00ff', // 7: Electric Violet
-        '#e6ff00', // 8: Acid Yellow
-        '#0088ff'  // 9: Deep Cyber Blue
+        '#00d2ff', // Cyan
+        '#ff007f', // Hot Pink
+        '#00ff66', // Acid Green
+        '#ffaa00', // Solar Gold
+        '#00ffcc', // Mint Turquoise
+        '#b800ff', // Cyber Purple
+        '#ff3333', // Laser Red
+        '#cc00ff', // Electric Violet
+        '#e6ff00', // Acid Yellow
+        '#0088ff'  // Deep Cyber Blue
     ];
 
     function getNeonColorForCategory(catName) {
         const lower = catName.toLowerCase();
-        if (lower.includes('cocktail') && !lower.includes('mocktail')) return '#00d2ff'; // Cyan
-        if (lower.includes('mocktail') || lower.includes('alkoholfrei')) return '#00ffcc'; // Mint Turquoise
-        if (lower.includes('longdrink')) return '#ffaa00';                                 // Solar Gold
-        if (lower.includes('shot')) return '#ff007f';                                      // Hot Pink
-        if (lower.includes('bier') || lower.includes('seidel')) return '#00ff66';          // Acid Green
-        if (lower.includes('wein') || lower.includes('spritz')) return '#cc00ff';          // Electric Violet
-        if (lower.includes('softdrink') || lower.includes('limo')) return '#0088ff';       // Deep Cyber Blue
-        if (lower.includes('kaffee') || lower.includes('tee') || lower.includes('coffee')) return '#ff3333'; // Laser Red
-        if (lower.includes('snack') || lower.includes('essen') || lower.includes('toast')) return '#e6ff00'; // Acid Yellow
+        
+        // HIER IST DIE NEUE VIP-FARBE FÜR SPECIALS:
+        if (lower.includes('special')) return '#ffea00'; // Exklusives Neon-Gold
+        
+        if (lower.includes('cocktail') && !lower.includes('mocktail')) return '#00d2ff'; 
+        if (lower.includes('mocktail') || lower.includes('alkoholfrei')) return '#00ffcc'; 
+        if (lower.includes('longdrink')) return '#ffaa00';                                 
+        if (lower.includes('shot')) return '#ff007f';                                      
+        if (lower.includes('bier') || lower.includes('seidel')) return '#00ff66';          
+        if (lower.includes('wein') || lower.includes('spritz')) return '#cc00ff';          
+        if (lower.includes('softdrink') || lower.includes('limo')) return '#0088ff';       
+        if (lower.includes('kaffee') || lower.includes('tee') || lower.includes('coffee')) return '#ff3333'; 
+        if (lower.includes('snack') || lower.includes('essen') || lower.includes('toast')) return '#e6ff00'; 
         
         let hash = 0;
         for (let i = 0; i < catName.length; i++) hash = catName.charCodeAt(i) + ((hash << 5) - hash);
         return neonPalette[Math.abs(hash) % neonPalette.length];
     }
 
-    // DER MASTER-MAGNET: Sortiert Kategorien haargenau nach Wunsch-Reihenfolge!
+    // DER MASTER-MAGNET: Jetzt mit 'special' auf Platz 1!
     function getSortedCategories() {
         const unique = [...new Set(allMenuItems.map(getCleanCat))];
         
         const masterOrder = [
+            'special',    // GANZ VORNE!
             'cocktail',
             'mocktail',
             'longdrink',
