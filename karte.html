@@ -24,7 +24,6 @@
         
         .header { padding: 30px 20px 10px; text-align: center; font-size: 20px; font-weight: 800; color: var(--cyan); border-bottom: 1px solid #1a1a1a; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
         
-        /* SPORTLICHER ABSTAND ZWISCHEN DEN BOXEN: 8px */
         .content { padding: 16px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         
         .category-bar {
@@ -59,13 +58,12 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
         }
         
-        /* --- HIGH-END SLEEK BOXEN (REINE TYPOGRAFIE) --- */
+        /* --- SLEEK BOXEN MIT VOLLER UMRAHMUNG --- */
         .menu-item { 
             background: var(--panel-bg); 
             border-radius: 12px; 
             padding: 14px 18px; 
-            border: 1px solid #1e1e1e;
-            border-left-width: 4px; 
+            border: 1.5px solid #1e1e1e;
             display: flex; 
             justify-content: space-between;
             align-items: center; 
@@ -101,9 +99,9 @@
             z-index: 1;
         }
 
-        /* MODAL (Zutaten-Lupe) */
+        /* MODAL */
         #drink-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--panel-bg); padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 340px; text-align: center; border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); }
+        .modal-content { background: var(--panel-bg); padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 340px; text-align: center; border: 1.5px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); }
         .modal-content h2 { font-size: 22px; margin-bottom: 12px; color: #fff; }
         .modal-content p { font-size: 14px; line-height: 1.6; color: #bbb; margin-bottom: 24px; }
         
@@ -156,7 +154,6 @@
         return n.toFixed(2).replace('.', ',') + ' €';
     }
 
-    // DIE EXAKTE NEON-FARBEN MATRIX 
     const neonPalette = [
         '#00d2ff', // Cyan
         '#ff007f', // Hot Pink
@@ -173,8 +170,8 @@
     function getNeonColorForCategory(catName) {
         const lower = catName.toLowerCase();
         
-        // HIER IST DIE NEUE VIP-FARBE FÜR SPECIALS:
-        if (lower.includes('special')) return '#ffea00'; // Exklusives Neon-Gold
+        // EDLES GOLD FÜR SPECIALS:
+        if (lower.includes('special')) return '#ffd700'; 
         
         if (lower.includes('cocktail') && !lower.includes('mocktail')) return '#00d2ff'; 
         if (lower.includes('mocktail') || lower.includes('alkoholfrei')) return '#00ffcc'; 
@@ -191,12 +188,11 @@
         return neonPalette[Math.abs(hash) % neonPalette.length];
     }
 
-    // DER MASTER-MAGNET: Jetzt mit 'special' auf Platz 1!
     function getSortedCategories() {
         const unique = [...new Set(allMenuItems.map(getCleanCat))];
         
         const masterOrder = [
-            'special',    // GANZ VORNE!
+            'special',
             'cocktail',
             'mocktail',
             'longdrink',
@@ -267,7 +263,6 @@
 
         const itemsToRender = allMenuItems.filter(item => getCleanCat(item) === currentCat);
         
-        // --- 3-STUFEN-SORTIERUNG (⭐ OBEN | A-Z MITTE | EXTRAS UNTEN) ---
         itemsToRender.sort((a, b) => {
             const isExtraA = a.name.trim().startsWith('+') || a.name.trim().startsWith('~') || a.name.toLowerCase().includes('extra');
             const isExtraB = b.name.trim().startsWith('+') || b.name.trim().startsWith('~') || b.name.toLowerCase().includes('extra');
@@ -277,7 +272,6 @@
             
             return a.name.localeCompare(b.name, 'de');
         });
-        // ------------------------------------------------------------------
 
         const activeColor = getNeonColorForCategory(currentCat);
 
@@ -285,8 +279,9 @@
             const div = document.createElement('div');
             div.className = 'menu-item';
             
-            div.style.borderLeftColor = activeColor;
-            div.style.boxShadow = `-4px 0 15px -2px ${activeColor}33`;
+            // VOLLSTÄNDIGE FARBIGE UMRAHMUNG:
+            div.style.borderColor = activeColor;
+            div.style.boxShadow = `0 0 12px ${activeColor}33`;
             
             div.innerHTML = `
                 <div class="item-info">
