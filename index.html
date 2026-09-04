@@ -23,14 +23,22 @@
         body { background-color: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .app-container { width: 100%; max-width: 420px; height: 100dvh; max-height: 900px; background-color: var(--bg-dark); display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
-        .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
         .logo-container { width: 100%; text-align: center; margin-bottom: 20px; }
 
+        /* Login Screen Styles */
+        #login-view { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .login-input { width: 100%; background: var(--panel-bg); border: 1.5px solid #333; border-radius: 12px; padding: 14px 15px; color: #fff; font-size: 15px; outline: none; text-align: center; }
+        .login-input:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+        .login-btn { width: 100%; background: var(--cyan); color: #000; border: none; border-radius: 12px; padding: 14px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; }
+        .login-btn:active { transform: scale(0.98); }
+
+        /* VIP Ansicht Styles */
+        #vip-view { width: 100%; display: none; flex-direction: column; align-items: center; }
         .vip-title { font-size: 12px; font-weight: 700; color: #777; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 5px; }
         .points-display { font-size: 28px; font-weight: 800; color: var(--cyan); text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
 
-        /* Timer Warnung Box */
         .timer-box {
             background: rgba(255, 170, 0, 0.05);
             border: 1px solid rgba(255, 170, 0, 0.3);
@@ -43,7 +51,6 @@
         .timer-box p { font-size: 11px; color: #bbb; line-height: 1.4; }
         .timer-box strong { color: #ffaa00; display: block; margin-bottom: 3px; font-size: 12px; }
 
-        /* Rewards Liste */
         .rewards-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         
         .reward-item {
@@ -67,7 +74,6 @@
             cursor: pointer;
         }
 
-        /* Das goldene 500-Pts Highlight */
         .reward-item.tier-gold {
             border-color: var(--gold);
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
@@ -76,30 +82,18 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
         }
 
-        .reward-pts {
-            font-size: 13px;
-            font-weight: 800;
-            color: #777;
-            min-width: 55px;
-        }
+        .reward-pts { font-size: 13px; font-weight: 800; color: #777; min-width: 55px; }
         .reward-item.unlocked .reward-pts { color: var(--cyan); }
         .reward-item.tier-gold .reward-pts { color: var(--gold); }
 
-        .reward-desc {
-            font-size: 12px;
-            font-weight: 600;
-            color: #bbb;
-            flex-grow: 1;
-            padding: 0 10px;
-            line-height: 1.3;
-        }
+        .reward-desc { font-size: 12px; font-weight: 600; color: #bbb; flex-grow: 1; padding: 0 10px; line-height: 1.3; }
         .reward-item.unlocked .reward-desc { color: #fff; }
 
         .reward-lock { font-size: 14px; color: #555; }
         .reward-item.unlocked .reward-lock { color: var(--cyan); }
         .reward-item.tier-gold.unlocked .reward-lock { color: var(--gold); }
 
-        .logout-btn { background: none; border: none; color: #666; font-size: 13px; cursor: pointer; padding: 5px; margin-top: auto; }
+        .logout-btn { background: none; border: none; color: #666; font-size: 13px; cursor: pointer; padding: 5px; margin-top: 10px; }
         .logout-btn:hover { color: #aaa; }
 
         /* Tab Bar unten */
@@ -117,43 +111,52 @@
             <h2 style="color:var(--cyan); letter-spacing: 2px; font-weight: 900; font-size: 22px;">MIDUS LOUNGE</h2>
         </div>
 
-        <div class="vip-title">Dein VIP Status</div>
-        <div class="points-display" id="user-points">0 Ptz <span style="font-size:16px; color:#555;">/ 500</span></div>
-
-        <div class="timer-box">
-            <strong>⚠️ ERST DIREKT VOR DEM PERSONAL KLICKEN!</strong>
-            <p>Der Gutschein-Timer läuft nach Aktivierung exakt 5 Minuten.</p>
+        <!-- 1. LOGIN ANSICHT (Wird gezeigt, wenn man abgemeldet ist) -->
+        <div id="login-view">
+            <p style="color:#aaa; font-size: 13px; text-align: center; margin-bottom: 5px;">Gib deine E-Mail-Adresse ein, um deinen VIP-Status aufzurufen:</p>
+            <input type="email" id="email-input" class="login-input" placeholder="deine.email@gmx.at">
+            <button class="login-btn" onclick="handleLogin()">VIP Status anzeigen</button>
         </div>
 
-        <div class="rewards-list">
-            <div class="reward-item" id="reward-50">
-                <div class="reward-pts">50 Ptz</div>
-                <div class="reward-desc">Spritzer 0,25l, Schremser 0,3l oder Alkoholfrei 0,3l 🍷🍺</div>
-                <div class="reward-lock">🔒</div>
+        <!-- 2. VIP PUNKTE ANSICHT (Wird gezeigt, wenn man eingeloggt ist) -->
+        <div id="vip-view">
+            <div class="vip-title">Dein VIP Status</div>
+            <div class="points-display" id="user-points">0 Ptz <span style="font-size:16px; color:#555;">/ 500</span></div>
+
+            <div class="timer-box">
+                <strong>⚠️ ERST DIREKT VOR DEM PERSONAL KLICKEN!</strong>
+                <p>Der Gutschein-Timer läuft nach Aktivierung exakt 5 Minuten.</p>
             </div>
 
-            <div class="reward-item" id="reward-150">
-                <div class="reward-pts">150 Ptz</div>
-                <div class="reward-desc">1 Longdrink oder 1 Shot deiner Wahl 🍸🥃</div>
-                <div class="reward-lock">🔒</div>
+            <div class="rewards-list">
+                <div class="reward-item" id="reward-50">
+                    <div class="reward-pts">50 Ptz</div>
+                    <div class="reward-desc">Spritzer 0,25l, Schremser 0,3l oder Alkoholfrei 0,3l 🍷🍺</div>
+                    <div class="reward-lock">🔒</div>
+                </div>
+
+                <div class="reward-item" id="reward-150">
+                    <div class="reward-pts">150 Ptz</div>
+                    <div class="reward-desc">1 Longdrink oder 1 Shot deiner Wahl 🍸🥃</div>
+                    <div class="reward-lock">🔒</div>
+                </div>
+
+                <div class="reward-item" id="reward-300">
+                    <div class="reward-pts">300 Ptz</div>
+                    <div class="reward-desc">1 Cocktail oder 1 Mocktail deiner Wahl 🍸🍹</div>
+                    <div class="reward-lock">🔒</div>
+                </div>
+
+                <div class="reward-item tier-gold" id="reward-500">
+                    <div class="reward-pts">500 Ptz</div>
+                    <div class="reward-desc">💳 <strong>1 Gutschein 20 €</strong> (frei einlösbar in der Lounge)</div>
+                    <div class="reward-lock">🔒</div>
+                </div>
             </div>
 
-            <div class="reward-item" id="reward-300">
-                <div class="reward-pts">300 Ptz</div>
-                <div class="reward-desc">1 Cocktail oder 1 Mocktail deiner Wahl 🍸🍹</div>
-                <div class="reward-lock">🔒</div>
-            </div>
-
-            <div class="reward-item tier-gold" id="reward-500">
-                <div class="reward-pts">500 Ptz</div>
-                <div class="reward-desc">💳 <strong>1 Gutschein 20 €</strong> (frei einlösbar in der Lounge)</div>
-                <div class="reward-lock">🔒</div>
-            </div>
+            <p style="font-size: 11px; color: #555; text-align: center; margin-bottom: 10px;">Deine Gesamt-Punkte verfallen beim Einlösen nicht.</p>
+            <button class="logout-btn" onclick="logoutUser()">Abmelden</button>
         </div>
-
-        <p style="font-size: 11px; color: #555; text-align: center; margin-bottom: 15px;">Deine Gesamt-Punkte verfallen beim Einlösen nicht.</p>
-        
-        <button class="logout-btn" onclick="logoutUser()">Abmelden</button>
     </div>
 
     <div class="tab-bar">
@@ -166,9 +169,49 @@
 </div>
 
 <script>
+    // Strikte E-Mail-Validierung gegen Müll-Eingaben
     function isValidEmail(email) {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
+    }
+
+    // Beim Laden der Seite prüfen, ob ein User eingeloggt ist
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedEmail = localStorage.getItem('midus_user_email');
+        const savedPoints = localStorage.getItem('midus_user_points');
+
+        if (savedEmail) {
+            showVipView(savedPoints ? parseInt(savedPoints) : 0);
+        } else {
+            showLoginView();
+        }
+    });
+
+    function showLoginView() {
+        document.getElementById('login-view').style.display = 'flex';
+        document.getElementById('vip-view').style.display = 'none';
+    }
+
+    function showVipView(points) {
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('vip-view').style.display = 'flex';
+        updateRewardsView(points);
+    }
+
+    function handleLogin() {
+        const emailInput = document.getElementById('email-input');
+        const email = emailInput.value.trim();
+
+        // Strikte E-Mail-Prüfung greift hier
+        if (!isValidEmail(email)) {
+            alert("Bitte gib eine gültige E-Mail-Adresse ein (z. B. name@gmx.at)!");
+            return;
+        }
+
+        // Speichern und Ansicht umschalten (Hier kannst du später deine Supabase-Abfrage einbauen)
+        localStorage.setItem('midus_user_email', email);
+        localStorage.setItem('midus_user_points', '0'); // Startet standardmäßig bei 0, bis Supabase geladen wird
+        showVipView(0);
     }
 
     function updateRewardsView(points) {
@@ -189,9 +232,10 @@
         });
     }
 
+    // ECHTER ABMELDEN-FIX: Löscht den Speicher und erzwingt die Login-Ansicht
     function logoutUser() {
         localStorage.clear();
-        location.reload();
+        showLoginView();
     }
 </script>
 
