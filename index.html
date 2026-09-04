@@ -170,18 +170,43 @@
 </div>
 
 <script>
+    // Strikte E-Mail-Validierungsfunktion
+    function isValidEmail(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+
+    // Beispiel für die Login/Registrierungs-Logik mit E-Mail-Prüfung
+    function handleUserLoginOrRegister() {
+        const emailInput = document.getElementById('email-input');
+        if (!emailInput) return; // Falls das Input auf dieser Ansicht gerade nicht da ist
+        
+        const userEmail = emailInput.value.trim();
+
+        // Hier greift die Sperre für ungültige E-Mails / Müll-Eingaben
+        if (!isValidEmail(userEmail)) {
+            alert("Bitte gib eine gültige E-Mail-Adresse ein (z. B. name@gmx.at)!");
+            return; 
+        }
+
+        // Ab hier geht es normal mit Supabase weiter...
+        console.log("Gültige E-Mail erkannt, Verbindung zu Supabase läuft...");
+    }
+
     function updateRewardsView(points) {
         document.getElementById('user-points').innerHTML = `${points} Ptz <span style="font-size:16px; color:#555;">/ 500</span>`;
 
         const thresholds = [50, 150, 300, 500];
         thresholds.forEach(t => {
             const el = document.getElementById(`reward-${t}`);
-            if (points >= t) {
-                el.classList.add('unlocked');
-                el.querySelector('.reward-lock').innerText = '🔓 Antippen';
-            } else {
-                el.classList.remove('unlocked');
-                el.querySelector('.reward-lock').innerText = '🔒';
+            if (el) {
+                if (points >= t) {
+                    el.classList.add('unlocked');
+                    el.querySelector('.reward-lock').innerText = '🔓 Antippen';
+                } else {
+                    el.classList.remove('unlocked');
+                    el.querySelector('.reward-lock').innerText = '🔒';
+                }
             }
         });
     }
