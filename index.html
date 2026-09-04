@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VIP Status - Midus Lounge</title>
+    <title>Midus Lounge</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
@@ -13,90 +13,78 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --bg-dark: #050505; 
-            --panel-bg: #121212; 
-            --cyan: #00d2ff; 
-            --gold: #ffd700;
-        }
+        :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; --green: #00ff66; --pink: #ff007f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        
         body { background-color: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .app-container { width: 100%; max-width: 420px; height: 100dvh; max-height: 900px; background-color: var(--bg-dark); display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
-        .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #login-overlay, #birthday-setup, #redeem-overlay, #bday-voucher-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); 
+            z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
+        }
         
-        .logo-container { width: 100%; text-align: center; margin-bottom: 20px; }
+        .input-group { width: 80%; max-width: 280px; text-align: center; }
+        input { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; background: #151515; color: white; border: 1px solid #333; text-align: center; font-size: 16px; }
+        button { width: 100%; padding: 14px; border-radius: 12px; background: var(--cyan); border: none; font-weight: bold; cursor: pointer; color: #000; font-size: 16px; }
+        
+        #bday-claim-btn { display: none; justify-content: center; align-items: center; border: 1px solid var(--pink); background: #151515; color: white; margin-bottom: 5px; box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); animation: pulse-pink 2s infinite; }
+        @keyframes pulse-pink { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        
+        .header { padding: 40px 20px 20px; display: flex; justify-content: center; border-bottom: 1px solid #111; flex-shrink: 0; }
+        .header img { width: 100%; max-width: 220px; max-height: 120px; object-fit: contain; }
+        .content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        
+        .loyalty-card { width: 100%; max-width: 340px; background: var(--panel-bg); padding: 25px 20px; border-radius: 24px; border: 1px solid rgba(0, 210, 255, 0.2); color: white; text-align: center; }
+        .points-text { margin: 10px 0 15px 0; font-size: 32px; color: var(--cyan); font-weight: bold; }
+        .points-max { font-size: 18px; color: #666; }
+        .progress-bar-bg { width: 100%; height: 12px; background-color: #222; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 0%; background-color: var(--cyan); border-radius: 10px; transition: width 1s; }
+        .timer-display { font-size: 54px; font-weight: bold; color: var(--green); margin: 20px 0; }
 
-        /* Login Screen Styles */
-        #login-view { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        .login-input { width: 100%; background: var(--panel-bg); border: 1.5px solid #333; border-radius: 12px; padding: 14px 15px; color: #fff; font-size: 15px; outline: none; text-align: center; }
-        .login-input:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
-        .login-btn { width: 100%; background: var(--cyan); color: #000; border: none; border-radius: 12px; padding: 14px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; }
-        .login-btn:active { transform: scale(0.98); }
-
-        /* VIP Ansicht Styles */
-        #vip-view { width: 100%; display: none; flex-direction: column; align-items: center; }
-        .vip-title { font-size: 12px; font-weight: 700; color: #777; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 5px; }
-        .points-display { font-size: 28px; font-weight: 800; color: var(--cyan); text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
-
-        .timer-box {
-            background: rgba(255, 170, 0, 0.05);
-            border: 1px solid rgba(255, 170, 0, 0.3);
+        /* --- HIGH-END TREUE RADAR BANNERS --- */
+        .warning-box {
+            background: rgba(255, 0, 127, 0.08);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            color: #bbb;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 10px 14px;
             border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            margin-bottom: 20px;
+            margin: 15px 0 8px 0;
             width: 100%;
+            line-height: 1.4;
+            text-align: center;
         }
-        .timer-box p { font-size: 11px; color: #bbb; line-height: 1.4; }
-        .timer-box strong { color: #ffaa00; display: block; margin-bottom: 3px; font-size: 12px; }
 
-        .rewards-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        
+        .rewards-container { display: flex; flex-direction: column; gap: 8px; text-align: left; width: 100%; }
         .reward-item {
-            background: var(--panel-bg);
-            border: 1.5px solid #222;
-            border-radius: 12px;
-            padding: 12px 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            opacity: 0.6;
-            transition: all 0.2s ease;
+            background: #0a0a0a; border: 1px solid #222; padding: 12px; border-radius: 14px;
+            display: flex; align-items: center; gap: 12px; transition: all 0.2s ease; opacity: 0.3;
         }
-        
-        .reward-item.unlocked {
-            opacity: 1;
-            border-color: var(--cyan);
-            box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
-            cursor: pointer;
+        .reward-item.ready {
+            opacity: 1; border-color: rgba(0, 210, 255, 0.3); background: rgba(21, 21, 21, 0.6);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .reward-item.claimed {
+            opacity: 0.4; border-color: rgba(0, 255, 102, 0.15); background: #070f0b;
         }
 
-        .reward-item.tier-gold {
-            border-color: var(--gold);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
+        .reward-pts { font-weight: 800; font-size: 13px; color: #555; min-width: 48px; }
+        .reward-item.ready .reward-pts { color: var(--cyan); text-shadow: 0 0 8px rgba(0, 210, 255, 0.4); }
+        .reward-desc { font-size: 12px; color: #ccc; line-height: 1.3; flex-grow: 1; font-weight: 500; }
+        .reward-item.claimed .reward-desc { color: #777; text-decoration: line-through; }
+        .reward-status { display: flex; align-items: center; justify-content: center; }
+
+        /* NEUE PREMIUM BUTTONS */
+        .btn-claim { 
+            background: var(--cyan); color: #000; padding: 7px 12px; border-radius: 8px; 
+            font-size: 10px; font-weight: 800; letter-spacing: 0.5px; border: none; cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); transition: all 0.2s ease;
         }
-        .reward-item.tier-gold.unlocked {
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-        }
+        .btn-claim:active { transform: scale(0.95); background: white; }
+        .btn-claimed { color: var(--green); font-size: 11px; font-weight: bold; letter-spacing: 0.5px; }
 
-        .reward-pts { font-size: 13px; font-weight: 800; color: #777; min-width: 55px; }
-        .reward-item.unlocked .reward-pts { color: var(--cyan); }
-        .reward-item.tier-gold .reward-pts { color: var(--gold); }
-
-        .reward-desc { font-size: 12px; font-weight: 600; color: #bbb; flex-grow: 1; padding: 0 10px; line-height: 1.3; }
-        .reward-item.unlocked .reward-desc { color: #fff; }
-
-        .reward-lock { font-size: 14px; color: #555; }
-        .reward-item.unlocked .reward-lock { color: var(--cyan); }
-        .reward-item.tier-gold.unlocked .reward-lock { color: var(--gold); }
-
-        .logout-btn { background: none; border: none; color: #666; font-size: 13px; cursor: pointer; padding: 5px; margin-top: 10px; }
-        .logout-btn:hover { color: #aaa; }
-
-        /* Tab Bar unten */
         .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
         .tab-link { text-decoration: none; padding: 8px; width: 20%; display: flex; justify-content: center; }
         .tab-link svg { stroke: #555; width: 26px; height: 26px; }
@@ -106,56 +94,78 @@
 <body>
 
 <div class="app-container">
+    <div id="login-overlay" style="display: flex;">
+      <img src="logo.png" alt="Midus Lounge Logo" style="width: 100%; max-width: 210px; object-fit: contain; display: block; margin: -5px auto 15px auto;">
+        <div class="input-group">
+            <input type="email" id="email-input" placeholder="E-Mail Adresse">
+            <button onclick="login()">Anmelden</button>
+        </div>
+    </div>
+
+    <div id="birthday-setup">
+        <h2 style="color:white; margin-bottom:15px;">Geburtstags-Daten</h2>
+        <div class="input-group">
+            <input type="date" id="birth-date-input">
+            <button onclick="saveBirthday()">Speichern</button>
+        </div>
+    </div>
+
+    <div id="bday-voucher-overlay">
+        <h1 style="color: var(--pink);">Gratis Cocktail! 🍹</h1>
+        <p style="color:#aaa; margin: 20px 0;">Alles Gute! Zeige diesen Bildschirm vor.</p>
+        <div class="timer-display" id="bday-timer">05:00</div>
+        <button onclick="closeBdayVoucher()">Einlösen bestätigt</button>
+    </div>
+
+    <div id="redeem-overlay">
+        <p style="color:#aaa; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Freischaltung aktiv</p>
+        <h1 style="color: white; font-size: 20px; margin-top: 5px; max-width: 90%; line-height: 1.3;" id="redeem-drink-title">Drink</h1>
+        <p style="color:var(--pink); font-size:12px; font-weight:bold; margin-top:15px; letter-spacing: 0.5px;">⚠️ SCHIEBE DIESEN BILDSCHIRM JETZT ZUM PERSONAL!</p>
+        <div class="timer-display" id="countdown-clock">05:00</div>
+        <button onclick="closeRedeemOverlay()" style="background: var(--green);">Erledigt / Eingelöst</button>
+    </div>
+
+    <div class="header"><img src="logo.png" alt="Midus Lounge"></div>
+
     <div class="content">
-        <div class="logo-container">
-            <h2 style="color:var(--cyan); letter-spacing: 2px; font-weight: 900; font-size: 22px;">MIDUS LOUNGE</h2>
-        </div>
-
-        <!-- 1. LOGIN ANSICHT (Wird gezeigt, wenn man abgemeldet ist) -->
-        <div id="login-view">
-            <p style="color:#aaa; font-size: 13px; text-align: center; margin-bottom: 5px;">Gib deine E-Mail-Adresse ein, um deinen VIP-Status aufzurufen:</p>
-            <input type="email" id="email-input" class="login-input" placeholder="deine.email@gmx.at">
-            <button class="login-btn" onclick="handleLogin()">VIP Status anzeigen</button>
-        </div>
-
-        <!-- 2. VIP PUNKTE ANSICHT (Wird gezeigt, wenn man eingeloggt ist) -->
-        <div id="vip-view">
-            <div class="vip-title">Dein VIP Status</div>
-            <div class="points-display" id="user-points">0 Ptz <span style="font-size:16px; color:#555;">/ 500</span></div>
-
-            <div class="timer-box">
-                <strong>⚠️ ERST DIREKT VOR DEM PERSONAL KLICKEN!</strong>
-                <p>Der Gutschein-Timer läuft nach Aktivierung exakt 5 Minuten.</p>
+        <div class="loyalty-card">
+            <p style="color:#888; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Dein VIP Status</p>
+            <div class="points-text" id="points-display">0 Pointz <span class="points-max">/ 500</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+            
+            <button id="bday-claim-btn" onclick="openBdayVoucher()">🍹 Gratis Drink abholen!</button>
+            <p id="bday-warning" style="font-size: 11px; color: var(--pink); margin-bottom: 15px; display: none;">⚠️ Dieser Gutschein ist ab deinem Geburtstag 1 Woche lang gültig!</p>
+            
+            <div class="warning-box">
+                ⚠️ <b style="color:white;">ERST DIREKT VOR DEM PERSONAL KLICKEN!</b><br>
+                Der Gutschein-Timer läuft danach exakt <span style="color:var(--cyan); font-weight:bold;">5 Minuten</span>.
             </div>
 
-            <div class="rewards-list">
-                <div class="reward-item" id="reward-50">
-                    <div class="reward-pts">50 Ptz</div>
-                    <div class="reward-desc">Spritzer 0,25l, Schremser 0,3l oder Alkoholfrei 0,3l 🍷🍺</div>
-                    <div class="reward-lock">🔒</div>
+            <div class="rewards-container">
+                <div class="reward-item" id="rew-50">
+                    <span class="reward-pts">50 Pts</span>
+                    <span class="reward-desc">Spritzer weiß 0,25l oder Schremser Seidel 0,3l 🍷🍺</span>
+                    <span class="reward-status" id="stat-50">🔒</span>
                 </div>
-
-                <div class="reward-item" id="reward-150">
-                    <div class="reward-pts">150 Ptz</div>
-                    <div class="reward-desc">1 Longdrink oder 1 Shot deiner Wahl 🍸🥃</div>
-                    <div class="reward-lock">🔒</div>
+                <div class="reward-item" id="rew-150">
+                    <span class="reward-pts">150 Pts</span>
+                    <span class="reward-desc">1 Longdrink deiner Wahl (oder 2 Shots!) 🍹🥃</span>
+                    <span class="reward-status" id="stat-150">🔒</span>
                 </div>
-
-                <div class="reward-item" id="reward-300">
-                    <div class="reward-pts">300 Ptz</div>
-                    <div class="reward-desc">1 Cocktail oder 1 Mocktail deiner Wahl 🍸🍹</div>
-                    <div class="reward-lock">🔒</div>
+                <div class="reward-item" id="rew-300">
+                    <span class="reward-pts">300 Pts</span>
+                    <span class="reward-desc">1 Premium Cocktail oder 10€ Bar-Gutschein 🍸💶</span>
+                    <span class="reward-status" id="stat-300">🔒</span>
                 </div>
-
-                <div class="reward-item tier-gold" id="reward-500">
-                    <div class="reward-pts">500 Ptz</div>
-                    <div class="reward-desc">💳 <strong>1 Gutschein 20 €</strong> (frei einlösbar in der Lounge)</div>
-                    <div class="reward-lock">🔒</div>
+                <div class="reward-item" id="rew-500">
+                    <span class="reward-pts">500 Pts</span>
+                    <span class="reward-desc">Exklusives M Lounge Goodie 👑🎁</span>
+                    <span class="reward-status" id="stat-500">🔒</span>
                 </div>
             </div>
 
-            <p style="font-size: 11px; color: #555; text-align: center; margin-bottom: 10px;">Deine Gesamt-Punkte verfallen beim Einlösen nicht.</p>
-            <button class="logout-btn" onclick="logoutUser()">Abmelden</button>
+            <p style="font-size: 11px; color: #555; margin-top: 5px;">Deine Gesamt-Punkte verfallen beim Einlösen nicht.</p>
+            <button onclick="logout()" style="background:transparent; border:none; color:#444; font-size:11px; margin-top:12px; cursor:pointer;">Abmelden</button>
         </div>
     </div>
 
@@ -169,82 +179,109 @@
 </div>
 
 <script>
-    // Strikte E-Mail-Validierung gegen Müll-Eingaben
-    function isValidEmail(email) {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    }
+    const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
+    let countdownInterval;
+    
+    const rewardNames = {
+        50: "Spritzer weiß 0,25l oder Schremser Seidel 0,3l 🍷🍺",
+        150: "1 Longdrink deiner Wahl (oder 2 Shots!) 🍹🥃",
+        300: "1 Premium Cocktail oder 10€ Bar-Gutschein 🍸💶",
+        500: "Exklusives M Lounge Goodie 👑🎁"
+    };
 
-    // Beim Laden der Seite prüfen, ob ein User eingeloggt ist
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedEmail = localStorage.getItem('midus_user_email');
-        const savedPoints = localStorage.getItem('midus_user_points');
+    async function login() { const email = document.getElementById('email-input').value.trim().toLowerCase(); if(!email) return; const { data } = await sb.from('vip_guests').select('*').eq('email', email); if (data.length === 0) await sb.from('vip_guests').insert([{ email: email, points: 0 }]); localStorage.setItem('midus_user', email); checkProfile(email); }
+    async function checkProfile(email) { const { data } = await sb.from('vip_guests').select('birth_date').eq('email', email).single(); if (!data || !data.birth_date) { document.getElementById('birthday-setup').style.display = 'flex'; document.getElementById('login-overlay').style.display = 'none'; } else { location.reload(); } }
+    async function saveBirthday() { const birthDate = document.getElementById('birth-date-input').value; if(!birthDate) return; await sb.from('vip_guests').update({ birth_date: birthDate }).eq('email', localStorage.getItem('midus_user')); location.reload(); }
+    function openBdayVoucher() { document.getElementById('bday-voucher-overlay').style.display = 'flex'; startTimer('bday-timer', 300, () => location.reload()); }
+    function closeBdayVoucher() { clearInterval(countdownInterval); const email = localStorage.getItem('midus_user'); localStorage.setItem('midus_cocktail_claim_' + new Date().getFullYear() + '_' + email, 'true'); location.reload(); }
+    
+    async function claimTier(tierCost, userRow) {
+        const email = localStorage.getItem('midus_user');
+        if (!email || userRow['claimed_' + tierCost]) return;
 
-        if (savedEmail) {
-            showVipView(savedPoints ? parseInt(savedPoints) : 0);
+        let question = `⚠️ SICHERHEITS-CHECK!\n\nBist du WIRKLICH gerade an der Bar bei der Kellnerin?\n\nPrämie: "${rewardNames[tierCost]}"\n\nDer Gutschein-Timer läuft unaufhaltsam für 5 Minuten ab!`;
+        if (tierCost === 500) {
+            question = `👑 BATTLE PASS ZURÜCKSETZEN?\n\nMöchtest du dein M Lounge Goodie einlösen? Deine Punkte werden danach wieder auf 0 gesetzt für die nächste epische Sammel-Runde!`;
+        }
+
+        if (!confirm(question)) return;
+
+        let payload = {};
+        if (tierCost === 500) {
+            payload = { points: 0, claimed_50: false, claimed_150: false, claimed_300: false, claimed_500: false };
         } else {
-            showLoginView();
-        }
-    });
-
-    function showLoginView() {
-        document.getElementById('login-view').style.display = 'flex';
-        document.getElementById('vip-view').style.display = 'none';
-    }
-
-    function showVipView(points) {
-        document.getElementById('login-view').style.display = 'none';
-        document.getElementById('vip-view').style.display = 'flex';
-        updateRewardsView(points);
-    }
-
-    function handleLogin() {
-        const emailInput = document.getElementById('email-input');
-        const email = emailInput.value.trim();
-
-        // Strikte E-Mail-Prüfung greift hier
-        if (!isValidEmail(email)) {
-            alert("Bitte gib eine gültige E-Mail-Adresse ein (z. B. name@gmx.at)!");
-            return;
+            payload['claimed_' + tierCost] = true;
         }
 
-        // Speichern und Ansicht umschalten (Hier kannst du später deine Supabase-Abfrage einbauen)
-        localStorage.setItem('midus_user_email', email);
-        localStorage.setItem('midus_user_points', '0'); // Startet standardmäßig bei 0, bis Supabase geladen wird
-        showVipView(0);
+        const { error } = await sb.from('vip_guests').update(payload).eq('email', email);
+        if (error) { alert("Serverfehler beim Einlösen."); return; }
+
+        document.getElementById('redeem-drink-title').innerText = rewardNames[tierCost];
+        document.getElementById('redeem-overlay').style.display = 'flex';
+        startTimer('countdown-clock', 300, () => location.reload());
     }
 
-    function updateRewardsView(points) {
-        document.getElementById('user-points').innerHTML = `${points} Ptz <span style="font-size:16px; color:#555;">/ 500</span>`;
+    function renderBattlePass(userData) {
+        const pts = userData.points || 0;
+        const tiers = [50, 150, 300, 500];
 
-        const thresholds = [50, 150, 300, 500];
-        thresholds.forEach(t => {
-            const el = document.getElementById(`reward-${t}`);
-            if (el) {
-                if (points >= t) {
-                    el.classList.add('unlocked');
-                    el.querySelector('.reward-lock').innerText = '🔓 Antippen';
-                } else {
-                    el.classList.remove('unlocked');
-                    el.querySelector('.reward-lock').innerText = '🔒';
-                }
+        tiers.forEach(t => {
+            const el = document.getElementById('rew-' + t);
+            const st = document.getElementById('stat-' + t);
+            const alreadyClaimed = userData['claimed_' + t] === true;
+
+            if (alreadyClaimed) {
+                el.className = 'reward-item claimed';
+                st.innerHTML = '<span class="btn-claimed">✅ EINGELÖST</span>';
+                el.onclick = null;
+            } else if (pts >= t) {
+                el.className = 'reward-item ready';
+                st.innerHTML = '<button class="btn-claim">EINLÖSEN</button>';
+                el.onclick = () => claimTier(t, userData);
+            } else {
+                el.className = 'reward-item';
+                st.innerText = '🔒';
+                el.onclick = null;
             }
         });
     }
 
-    // ECHTER ABMELDEN-FIX: Löscht den Speicher und erzwingt die Login-Ansicht
-    function logoutUser() {
-        localStorage.clear();
-        showLoginView();
+    function startTimer(id, dur, cb) { let t = dur; countdownInterval = setInterval(() => { let m = parseInt(t/60), s = parseInt(t%60); document.getElementById(id).textContent = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s); if (--t < 0) { clearInterval(countdownInterval); cb(); } }, 1000); }
+    function closeRedeemOverlay() { clearInterval(countdownInterval); location.reload(); }
+    function logout() { localStorage.removeItem('midus_user'); location.reload(); }
+
+    const u = localStorage.getItem('midus_user'); 
+    if(u) { 
+        document.getElementById('login-overlay').style.display = 'none'; 
+        sb.from('vip_guests').select('*').eq('email', u).single().then(r => { 
+            if(r.data) { 
+                const pts = r.data.points || 0; 
+                document.getElementById('points-display').innerHTML = pts + ' Pointz <span class="points-max">/ 500</span>'; 
+                let p = (pts/500)*100; 
+                document.getElementById('progress-fill').style.width = Math.min(p, 100) + '%'; 
+                
+                renderBattlePass(r.data);
+
+                if (r.data.birth_date) { 
+                    let bStr = r.data.birth_date.trim(); let bM, bD;
+                    if (bStr.includes('-')) { let parts = bStr.split('-'); bM = parseInt(parts[1], 10)-1; bD = parseInt(parts[2], 10); } 
+                    else if (bStr.includes('.')) { let parts = bStr.split('.'); bD = parseInt(parts[0], 10); bM = parseInt(parts[1], 10)-1; } 
+                    else { let dObj = new Date(bStr); bM = dObj.getMonth(); bD = dObj.getDate(); }
+
+                    const now = new Date(); const y = now.getFullYear();
+                    const diffDays = Math.round((new Date(y, now.getMonth(), now.getDate()).getTime() - new Date(y, bM, bD).getTime()) / 86400000);
+                    if (diffDays >= 0 && diffDays <= 7 && !localStorage.getItem('midus_cocktail_claim_' + y + '_' + u)) {
+                        document.getElementById('bday-claim-btn').style.display = 'flex';
+                        document.getElementById('bday-warning').style.display = 'block';
+                    }
+                } 
+            } 
+        }); 
     }
 </script>
 
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js');
-        });
-    }
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
 </script>
 </body>
 </html>
