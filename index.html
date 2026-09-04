@@ -26,7 +26,6 @@
         .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         
         .logo-container { width: 100%; text-align: center; margin-bottom: 20px; }
-        .logo-container img { max-width: 140px; height: auto; }
 
         .vip-title { font-size: 12px; font-weight: 700; color: #777; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 5px; }
         .points-display { font-size: 28px; font-weight: 800; color: var(--cyan); text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
@@ -115,12 +114,11 @@
 <div class="app-container">
     <div class="content">
         <div class="logo-container">
-            <!-- Passe hier den Pfad zu deinem Logo an falls nötig -->
             <h2 style="color:var(--cyan); letter-spacing: 2px; font-weight: 900; font-size: 22px;">MIDUS LOUNGE</h2>
         </div>
 
         <div class="vip-title">Dein VIP Status</div>
-        <div class="points-display" id="user-points">0 Pointz <span style="font-size:16px; color:#555;">/ 500</span></div>
+        <div class="points-display" id="user-points">0 Ptz <span style="font-size:16px; color:#555;">/ 500</span></div>
 
         <div class="timer-box">
             <strong>⚠️ ERST DIREKT VOR DEM PERSONAL KLICKEN!</strong>
@@ -128,31 +126,31 @@
         </div>
 
         <div class="rewards-list">
-            <!-- 50 Pts -->
+            <!-- 50 Ptz -->
             <div class="reward-item" id="reward-50">
-                <div class="reward-pts">50 Pts</div>
-                <div class="reward-desc">Spritzer weiß 0,25l oder Schremser Seidel 0,3l 🍷🍺</div>
+                <div class="reward-pts">50 Ptz</div>
+                <div class="reward-desc">Spritzer 0,25l, Schremser 0,3l oder Alkoholfrei 0,3l 🍷🍺</div>
                 <div class="reward-lock">🔒</div>
             </div>
 
-            <!-- 150 Pts -->
+            <!-- 150 Ptz -->
             <div class="reward-item" id="reward-150">
-                <div class="reward-pts">150 Pts</div>
-                <div class="reward-desc">1 Longdrink deiner Wahl (oder 2 Shots!) 🍸🥃</div>
+                <div class="reward-pts">150 Ptz</div>
+                <div class="reward-desc">1 Longdrink oder 1 Shot deiner Wahl 🍸🥃</div>
                 <div class="reward-lock">🔒</div>
             </div>
 
-            <!-- 300 Pts -->
+            <!-- 300 Ptz -->
             <div class="reward-item" id="reward-300">
-                <div class="reward-pts">300 Pts</div>
-                <div class="reward-desc">1 Premium Cocktail oder 10 € Bar-Gutschein 🍸💳</div>
+                <div class="reward-pts">300 Ptz</div>
+                <div class="reward-desc">1 Cocktail oder 1 Mocktail deiner Wahl 🍸🍹</div>
                 <div class="reward-lock">🔒</div>
             </div>
 
-            <!-- 500 Pts (DAS GOLDENE HIGHLIGHT) -->
+            <!-- 500 Ptz -->
             <div class="reward-item tier-gold" id="reward-500">
-                <div class="reward-pts">500 Pts</div>
-                <div class="reward-desc">🍾 <strong>Flasche Prosecco</strong> für den Tisch + Snack-Runde! (oder 20 € Gutschein)</div>
+                <div class="reward-pts">500 Ptz</div>
+                <div class="reward-desc">💳 <strong>1 Gutschein 20 €</strong> (frei einlösbar in der Lounge)</div>
                 <div class="reward-lock">🔒</div>
             </div>
         </div>
@@ -172,9 +170,8 @@
 </div>
 
 <script>
-    // Beispiel-Logik zum Freischalten basierend auf den Punkten des Nutzers
     function updateRewardsView(points) {
-        document.getElementById('user-points').innerHTML = `${points} Pointz <span style="font-size:16px; color:#555;">/ 500</span>`;
+        document.getElementById('user-points').innerHTML = `${points} Ptz <span style="font-size:16px; color:#555;">/ 500</span>`;
 
         const thresholds = [50, 150, 300, 500];
         thresholds.forEach(t => {
@@ -188,9 +185,6 @@
             }
         });
     }
-
-    // Dummy-Start (kannst du mit deiner Supabase-User-Abfrage verknüpfen):
-    // updateRewardsView(350); 
 
     function logoutUser() {
         localStorage.clear();
