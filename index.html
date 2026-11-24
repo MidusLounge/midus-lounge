@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
  
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="ui.js"></script>
     <style>
         :root { --bg-dark: #050505; --panel-bg: #151515; --cyan: #00d2ff; --green: #00ff66; --pink: #ff007f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
@@ -39,14 +40,25 @@
         .points-text { margin: 8px 0 12px 0; font-size: 32px; font-weight: 900; background: linear-gradient(135deg, var(--cyan), var(--pink), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(0, 210, 255, 0.3)); }
         .points-max { font-size: 16px; color: #777; -webkit-text-fill-color: #777; font-weight: normal; }
         .progress-bar-bg { width: 100%; height: 10px; background-color: #222; border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
+        .progress-wrap { position: relative; width: 100%; margin-bottom: 26px; }
+        .progress-wrap .progress-bar-bg { margin-bottom: 0; }
+        .pb-mark { position: absolute; top: -3px; width: 2px; height: 16px; background: #444; border-radius: 1px; transform: translateX(-1px); }
+        .pb-mark.reached { background: #fff; box-shadow: 0 0 6px #fff; }
+        .pb-label { position: absolute; top: 16px; font-size: 11px; color: #666; transform: translateX(-50%); font-weight: 700; }
+        .pb-label.reached { color: var(--cyan); }
+        .next-goal { font-size: 14px; color: #ddd; margin: 4px 0 14px; line-height: 1.4; }
+        .next-goal b { color: var(--cyan); }
+        .gain-badge { display: inline-block; color: var(--green); font-weight: 900; font-size: 18px; margin-left: 6px; -webkit-text-fill-color: var(--green); animation: gain-pop 2.5s ease forwards; }
+        @keyframes gain-pop { 0% { opacity: 0; transform: translateY(8px) scale(0.8); } 15% { opacity: 1; transform: translateY(0) scale(1.15); } 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-10px); } }
+        .profile-line { font-size: 12px; color: #666; margin-top: 10px; }
         .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--pink)); border-radius: 10px; transition: width 1s; }
         .timer-display { font-size: 54px; font-weight: bold; color: var(--green); margin: 20px 0; }
 
         .warning-box {
            background: rgba(255, 0, 127, 0.08);
            border: 1px solid rgba(255, 0, 127, 0.3);
-           color: #bbb;
-           font-size: 11px;
+           color: #ccc;
+           font-size: 13px;
            font-weight: 500;
            padding: 8px 12px;
            border-radius: 10px;
@@ -58,8 +70,8 @@
 
         .rewards-container { display: flex; flex-direction: column; gap: 6px; text-align: left; width: 100%; }
         .reward-item {
-           background: #0a0a0a; border: 1px solid #222; padding: 10px 12px; border-radius: 12px;
-           display: flex; align-items: center; gap: 10px; transition: all 0.2s ease; opacity: 0.3;
+           background: #0a0a0a; border: 1px solid #222; padding: 12px 12px; border-radius: 12px;
+           display: flex; align-items: center; gap: 10px; transition: all 0.2s ease; opacity: 0.45;
         }
         .reward-item.ready {
            opacity: 1; border-color: rgba(0, 210, 255, 0.3); background: rgba(21, 21, 21, 0.6);
@@ -69,19 +81,19 @@
            opacity: 0.4; border-color: rgba(0, 255, 102, 0.15); background: #070f0b;
         }
 
-        .reward-pts { font-weight: 800; font-size: 12px; color: #555; min-width: 45px; }
+        .reward-pts { font-weight: 800; font-size: 13px; color: #666; min-width: 62px; line-height: 1.2; }
         .reward-item.ready .reward-pts { color: var(--cyan); text-shadow: 0 0 8px rgba(0, 210, 255, 0.4); }
-        .reward-desc { font-size: 11px; color: #ccc; line-height: 1.3; flex-grow: 1; font-weight: 500; }
+        .reward-desc { font-size: 14px; color: #ddd; line-height: 1.35; flex-grow: 1; font-weight: 500; }
         .reward-item.claimed .reward-desc { color: #777; text-decoration: line-through; }
         .reward-status { display: flex; align-items: center; justify-content: center; }
 
         .btn-claim { 
-            background: var(--cyan); color: #000; padding: 6px 10px; border-radius: 7px; 
-            font-size: 10px; font-weight: 800; letter-spacing: 0.5px; border: none; cursor: pointer;
+            background: var(--cyan); color: #000; padding: 8px 12px; border-radius: 8px; 
+            font-size: 12px; font-weight: 800; letter-spacing: 0.5px; border: none; cursor: pointer;
             box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); transition: all 0.2s ease;
         }
         .btn-claim:active { transform: scale(0.95); background: white; }
-        .btn-claimed { color: var(--green); font-size: 10px; font-weight: bold; letter-spacing: 0.5px; }
+        .btn-claimed { color: var(--green); font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
 
         .tab-bar { background-color: var(--panel-bg); padding: 10px 15px; display: flex; justify-content: space-around; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 15px); flex-shrink: 0; }
         .tab-link { text-decoration: none; padding: 8px; width: 20%; display: flex; justify-content: center; }
@@ -101,7 +113,8 @@
     </div>
 
     <div id="birthday-setup">
-        <h2 style="color:white; margin-bottom:15px;">Geburtstags-Daten</h2>
+        <h2 style="color:white; margin-bottom:8px;">Wann hast du Geburtstag? 🎂</h2>
+        <p style="color:#999; font-size:14px; margin-bottom:18px; max-width:280px; line-height:1.4;">Zum Geburtstag gibt's einen Gratis-Cocktail von uns!</p>
         <div class="input-group">
             <input type="date" id="birth-date-input">
             <button onclick="saveBirthday()">Speichern</button>
@@ -127,12 +140,19 @@
 
     <div class="content">
         <div class="loyalty-card">
-            <p style="color:#888; font-size:11px; letter-spacing:1px; text-transform:uppercase;">Dein VIP Status</p>
+            <p style="color:#999; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Dein VIP Status</p>
             <div class="points-text" id="points-display">0 Pointz <span class="points-max">/ 500</span></div>
-            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+            <div class="progress-wrap">
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+                <div class="pb-mark" id="mk-50" style="left:10%"></div><div class="pb-label" id="lb-50" style="left:10%">50</div>
+                <div class="pb-mark" id="mk-150" style="left:30%"></div><div class="pb-label" id="lb-150" style="left:30%">150</div>
+                <div class="pb-mark" id="mk-300" style="left:60%"></div><div class="pb-label" id="lb-300" style="left:60%">300</div>
+                <div class="pb-label" id="lb-500" style="left:auto; right:0; transform:none;">500</div>
+            </div>
+            <p class="next-goal" id="next-goal"></p>
             
             <button id="bday-claim-btn" onclick="openBdayVoucher()">🍹 Gratis Drink abholen!</button>
-            <p id="bday-warning" style="font-size: 11px; color: var(--pink); margin-bottom: 10px; display: none;">⚠️ Dieser Gutschein ist ab deinem Geburtstag 1 Woche lang gültig!</p>
+            <p id="bday-warning" style="font-size: 13px; color: var(--pink); margin-bottom: 10px; display: none;">⚠️ Dieser Gutschein ist ab deinem Geburtstag 1 Woche lang gültig!</p>
             
             <div class="warning-box">
                 ⚠️ <b style="color:white;">ERST DIREKT VOR DEM PERSONAL KLICKEN!</b><br>
@@ -141,29 +161,30 @@
 
            <div class="rewards-container">
                <div class="reward-item" id="rew-50">
-                   <span class="reward-pts">50 Ptz</span>
+                   <span class="reward-pts">50<br>Pointz</span>
                    <span class="reward-desc">Spritzer 0,25l/ Schremser 0,3l oder Alkoholfrei 0,3l 🍷🍺</span>
                    <span class="reward-status" id="stat-50">🔒</span>
                </div>
                <div class="reward-item" id="rew-150">
-                   <span class="reward-pts">150 Ptz</span>
+                   <span class="reward-pts">150<br>Pointz</span>
                    <span class="reward-desc">1 Longdrink oder 1 Shot deiner Wahl 🍹🥃</span>
                    <span class="reward-status" id="stat-150">🔒</span>
                </div>
                <div class="reward-item" id="rew-300">
-                   <span class="reward-pts">300 Ptz</span>
+                   <span class="reward-pts">300<br>Pointz</span>
                    <span class="reward-desc">1 Cocktail oder 1 Mocktail deiner Wahl 🍸🍹</span>
                    <span class="reward-status" id="stat-300">🔒</span>
                </div>
                <div class="reward-item" id="rew-500">
-                   <span class="reward-pts">500 Ptz</span>
+                   <span class="reward-pts">500<br>Pointz</span>
                    <span class="reward-desc">1 Gutschein 20€ 💶👑</span>
                    <span class="reward-status" id="stat-500">🔒</span>
                </div>
            </div>
 
-            <p style="font-size: 10px; color: #555; margin-top: 4px;">Deine Gesamt-Punkte verfallen beim Einlösen nicht.</p>
-            <button onclick="logout()" style="background:transparent; border:none; color:#444; font-size:10px; margin-top:8px; cursor:pointer;">Abmelden</button>
+            <p style="font-size: 12px; color: #777; margin-top: 8px; line-height: 1.4;">Deine Pointz verfallen beim Einlösen nicht – erst nach dem 20 € Gutschein startest du wieder bei 0.</p>
+            <p class="profile-line" id="profile-line"></p>
+            <button onclick="logout()" style="background:transparent; border:1px solid #333; color:#999; font-size:13px; margin-top:12px; padding:10px; cursor:pointer;">Abmelden</button>
         </div>
     </div>
 
@@ -198,7 +219,7 @@
         if (!email) return; 
 
         if (!isValidEmail(email)) {
-            alert("Bitte gib eine gültige E-Mail-Adresse ein!");
+            await uiAlert("Ungültige E-Mail", "Bitte gib eine gültige E-Mail-Adresse ein.", "error", "✉️");
             return;
         }
 
@@ -220,7 +241,10 @@
 
     async function saveBirthday() { 
         const birthDate = document.getElementById('birth-date-input').value; 
-        if(!birthDate) return; 
+        if(!birthDate) { await uiAlert("Datum fehlt", "Bitte wähle dein Geburtsdatum aus.", "error", "📅"); return; }
+        const [by, bm, bd] = birthDate.split('-');
+        const ok = await uiConfirm("Stimmt das so?", `Dein Geburtstag: <b>${bd}.${bm}.${by}</b>\n\nDas Datum kann später <b>nicht mehr geändert</b> werden.`, "Ja, speichern", "Ändern", "pink", "🎂");
+        if (!ok) return;
         await sb.from('vip_guests').update({ birth_date: birthDate }).eq('email', localStorage.getItem('midus_user')); 
         location.reload(); 
     }
@@ -241,12 +265,13 @@
         const email = localStorage.getItem('midus_user');
         if (!email || userRow['claimed_' + tierCost]) return;
 
-        let question = `⚠️ SICHERHEITS-CHECK!\n\nBist du WIRKLICH gerade an der Bar bei der Kellnerin?\n\nPrämie: "${rewardNames[tierCost]}"\n\nDer Gutschein-Timer läuft unaufhaltsam für 5 Minuten ab!`;
+        let ok;
         if (tierCost === 500) {
-            question = `👑 BATTLE PASS ZURÜCKSETZEN?\n\nMöchtest du deinen 20€ Gutschein einlösen? Deine Punkte werden danach wieder auf 0 gesetzt für die nächste epische Sammel-Runde!`;
+            ok = await uiConfirm("20 € Gutschein einlösen?", `Bist du gerade an der Bar beim Personal?\n\nDeine Pointz starten danach wieder bei <b>0</b> – für die nächste Sammelrunde! 👑`, "Jetzt einlösen", "Abbrechen", "gold", "💶");
+        } else {
+            ok = await uiConfirm("Bist du an der Bar?", `Prämie: <b>${rewardNames[tierCost]}</b>\n\nNach dem Klick läuft der Gutschein <b>5 Minuten</b> – zeig ihn sofort dem Personal!`, "Jetzt einlösen", "Abbrechen", "pink", "🍹");
         }
-
-        if (!confirm(question)) return;
+        if (!ok) return;
 
         let payload = {};
         if (tierCost === 500) {
@@ -256,7 +281,7 @@
         }
 
         const { error } = await sb.from('vip_guests').update(payload).eq('email', email);
-        if (error) { alert("Serverfehler beim Einlösen."); return; }
+        if (error) { await uiAlert("Fehler", "Serverfehler beim Einlösen. Bitte versuch es nochmal.", "error", "⚠️"); return; }
 
         document.getElementById('redeem-drink-title').innerText = rewardNames[tierCost];
         document.getElementById('redeem-overlay').style.display = 'flex';
@@ -297,6 +322,65 @@
         }, 1000); 
     }
 
+    const goalNames = { 50: "Gratis-Spritzer, Bier oder Alkoholfrei", 150: "Longdrink oder Shot", 300: "Cocktail oder Mocktail", 500: "20 € Gutschein" };
+
+    function setPointsUI(pts) {
+        document.getElementById('points-display').innerHTML = pts + ' Pointz <span class="points-max">/ 500</span>';
+        document.getElementById('progress-fill').style.width = Math.min(pts / 500 * 100, 100) + '%';
+        [50, 150, 300, 500].forEach(t => {
+            const mk = document.getElementById('mk-' + t), lb = document.getElementById('lb-' + t);
+            if (mk) mk.classList.toggle('reached', pts >= t);
+            if (lb) lb.classList.toggle('reached', pts >= t);
+        });
+    }
+
+    function renderPoints(pts, userData) {
+        // Nächstes Ziel bzw. Hinweis auf einlösbare Prämie
+        const tiers = [50, 150, 300, 500];
+        const ready = tiers.filter(t => pts >= t && !userData['claimed_' + t]);
+        const next = tiers.find(t => pts < t);
+        const goalEl = document.getElementById('next-goal');
+        if (ready.length) {
+            goalEl.innerHTML = `🎉 Du kannst <b>${ready.length === 1 ? 'eine Prämie' : ready.length + ' Prämien'}</b> einlösen!`;
+        } else if (next) {
+            goalEl.innerHTML = `Noch <b>${next - pts} Pointz</b> bis: ${goalNames[next]}`;
+        } else {
+            goalEl.innerHTML = '';
+        }
+
+        // Gerade gescannt? -> Punkte hochzählen lassen
+        let gain = null;
+        try { gain = JSON.parse(sessionStorage.getItem('midus_gain') || 'null'); sessionStorage.removeItem('midus_gain'); } catch (_) {}
+        if (!gain || !gain.points) { setPointsUI(pts); return; }
+
+        const start = Math.max(0, pts - gain.points);
+        setPointsUI(start);
+        const t0 = performance.now(), dur = 1500;
+        setTimeout(() => {
+            function step(now) {
+                const k = Math.min((now - t0 - 400) / dur, 1);
+                if (k < 0) { requestAnimationFrame(step); return; }
+                const ease = 1 - Math.pow(1 - k, 3);
+                setPointsUI(Math.round(start + (pts - start) * ease));
+                if (k < 1) requestAnimationFrame(step);
+                else {
+                    const b = document.createElement('span');
+                    b.className = 'gain-badge'; b.textContent = '+' + gain.points;
+                    document.getElementById('points-display').appendChild(b);
+                }
+            }
+            requestAnimationFrame(step);
+        }, 0);
+        uiAlert(gain.title || "Pointz gebucht!", gain.text || `<b>+${gain.points} Pointz</b> gutgeschrieben.`, "success", gain.icon || "🎉");
+    }
+
+    function showProfileLine(birthDate) {
+        if (!birthDate) return;
+        const p = String(birthDate).split('-');
+        const txt = p.length === 3 ? `${p[2]}.${p[1]}.` : birthDate;
+        document.getElementById('profile-line').textContent = `🎂 Dein Geburtstag: ${txt} · ${localStorage.getItem('midus_user') || ''}`;
+    }
+
     function closeRedeemOverlay() { clearInterval(countdownInterval); location.reload(); }
     function logout() { localStorage.removeItem('midus_user'); location.reload(); }
 
@@ -306,11 +390,9 @@
         sb.from('vip_guests').select('*').eq('email', u).single().then(r => {
             if(r.data) { 
                 const pts = r.data.points || 0; 
-                document.getElementById('points-display').innerHTML = pts + ' Pointz <span class="points-max">/ 500</span>'; 
-                let p = (pts/500)*100; 
-                document.getElementById('progress-fill').style.width = Math.min(p, 100) + '%'; 
-                
+                renderPoints(pts, r.data);
                 renderBattlePass(r.data);
+                showProfileLine(r.data.birth_date);
 
                 if (r.data.birth_date) { 
                    let bStr = r.data.birth_date.trim(); let bM, bD;
