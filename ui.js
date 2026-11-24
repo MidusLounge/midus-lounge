@@ -1,5 +1,5 @@
 /* =========================================================
-   MIDUS LOUNGE – gemeinsame UI-Bausteine
+   M LOUNGE – gemeinsame UI-Bausteine
    - Neon-Popups statt grauer Browser-Fenster (uiAlert / uiConfirm)
    - Beschriftung der Tab-Leiste
    ========================================================= */
@@ -135,7 +135,7 @@
             text = `Tippe unten auf ${shareIcon} <b>Teilen</b> und dann auf <b>„Zum Home-Bildschirm“</b>.`;
             mainBtn = 'Verstanden';
         } else if (deferredPrompt) {
-            text = `Speichere die Midus VIP-App auf deinem Handy – so hast du deine Pointz immer griffbereit.`;
+            text = `Speichere die M Lounge VIP-App auf deinem Handy – so hast du deine Pointz immer griffbereit.`;
             mainBtn = 'Installieren';
         } else {
             text = `Tippe oben rechts auf <b>⋮</b> und dann auf <b>„App installieren“</b> bzw. <b>„Zum Startbildschirm“</b>.`;
