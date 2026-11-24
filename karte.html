@@ -184,6 +184,8 @@
         if (lower.includes('softdrink') || lower.includes('limo')) return '#0088ff';       
         if (lower.includes('kaffee') || lower.includes('tee') || lower.includes('coffee')) return '#ff3333'; 
         if (lower.includes('snack') || lower.includes('essen') || lower.includes('toast')) return '#e6ff00'; 
+        if (lower.includes('pizza')) return '#ffaa00';
+        if (lower.includes('jugend')) return '#00ffcc';
         
         let hash = 0;
         for (let i = 0; i < catName.length; i++) hash = catName.charCodeAt(i) + ((hash << 5) - hash);
@@ -195,7 +197,8 @@
         
         const masterOrder = [
             'special',
-            'cocktail',
+            'cocktails',
+            'classic cocktails',
             'mocktail',
             'longdrink',
             'shot',
@@ -203,14 +206,23 @@
             'wein',
             'spritz',
             'softdrink',
+            'jugend',
             'kaffee',
             'tee',
-            'snack'
+            'snack',
+            'pizza'
         ];
 
+        // Erst exakter Name, dann Teil-Treffer (z. B. "Cocktails" vor "Classic Cocktails")
+        const rank = cat => {
+            const c = cat.toLowerCase().trim();
+            let i = masterOrder.indexOf(c);
+            if (i === -1) i = masterOrder.findIndex(key => c.includes(key));
+            return i;
+        };
         return unique.sort((a, b) => {
-            let idxA = masterOrder.findIndex(key => a.toLowerCase().includes(key));
-            let idxB = masterOrder.findIndex(key => b.toLowerCase().includes(key));
+            let idxA = rank(a);
+            let idxB = rank(b);
             
             if (idxA === -1) idxA = 999;
             if (idxB === -1) idxB = 999;
