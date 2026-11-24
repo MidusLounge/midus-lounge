@@ -81,6 +81,104 @@
     window.uiConfirm = (title, text = '', okText = 'Ja', cancelText = 'Abbrechen', type = 'pink', icon = '') =>
         uiPopup({ title, text, type, icon, ok: okText, cancel: cancelText });
 
+    /* =========================================================
+       HINWEIS „ZUM HOMESCREEN HINZUFÜGEN“
+       - nur im Browser (nicht wenn die App schon installiert ist)
+       - nach „Später“ erst nach 7 Tagen wieder, nach „Nicht mehr zeigen“ nie wieder
+       ========================================================= */
+    const ls = {
+        get: k => { try { return localStorage.getItem(k); } catch (_) { return null; } },
+        set: (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} }
+    };
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isMobile = isIOS || /android/i.test(navigator.userAgent);
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
+    window.addEventListener('appinstalled', () => { ls.set('midus_a2hs', 'never'); hideA2HS(); });
+
+    const a2hsCss = `
+    .a2hs { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 30px); width: calc(100% - 24px); max-width: 396px; background: #121212; border: 1.5px solid #00d2ff; border-radius: 16px; padding: 14px; z-index: 8000; box-shadow: 0 0 25px rgba(0,210,255,0.25), 0 10px 30px rgba(0,0,0,0.7); opacity: 0; transition: all 0.35s ease; font-family: 'Segoe UI', sans-serif; }
+    .a2hs.show { opacity: 1; transform: translate(-50%, 0); }
+    .a2hs-top { display: flex; gap: 12px; align-items: center; }
+    .a2hs-top img { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; }
+    .a2hs-title { color: #fff; font-size: 16px; font-weight: 800; }
+    .a2hs-text { color: #bbb; font-size: 14px; line-height: 1.4; margin-top: 2px; }
+    .a2hs-text b { color: #00d2ff; }
+    .a2hs-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .a2hs-btns button { flex: 1; padding: 11px; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; border: none; font-family: 'Segoe UI', sans-serif; }
+    .a2hs-main { background: #00d2ff; color: #000; }
+    .a2hs-later { background: transparent; color: #aaa; border: 1px solid #333 !important; }
+    .a2hs-never { display: block; width: auto !important; padding: 4px 8px !important; margin: 8px auto 0; background: none; border: none; color: #666; font-size: 12px; text-decoration: underline; cursor: pointer; }
+    .a2hs-share { display: inline-block; vertical-align: -3px; width: 16px; height: 16px; }
+    `;
+
+    function hideA2HS() {
+        const el = document.getElementById('a2hs');
+        if (!el) return;
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 400);
+    }
+
+    function showA2HS() {
+        if (isStandalone || !isMobile || document.getElementById('a2hs')) return;
+        const state = ls.get('midus_a2hs');
+        if (state === 'never') return;
+        if (state && Date.now() < Number(state)) return; // „Später“ gedrückt -> noch warten
+
+        const st = document.createElement('style'); st.textContent = a2hsCss; document.head.appendChild(st);
+
+        const shareIcon = `<svg class="a2hs-share" viewBox="0 0 24 24" fill="none" stroke="#00d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`;
+        let text, mainBtn;
+        if (isIOS) {
+            text = `Tippe unten auf ${shareIcon} <b>Teilen</b> und dann auf <b>„Zum Home-Bildschirm“</b>.`;
+            mainBtn = 'Verstanden';
+        } else if (deferredPrompt) {
+            text = `Speichere die Midus VIP-App auf deinem Handy – so hast du deine Pointz immer griffbereit.`;
+            mainBtn = 'Installieren';
+        } else {
+            text = `Tippe oben rechts auf <b>⋮</b> und dann auf <b>„App installieren“</b> bzw. <b>„Zum Startbildschirm“</b>.`;
+            mainBtn = 'Verstanden';
+        }
+
+        const el = document.createElement('div');
+        el.className = 'a2hs'; el.id = 'a2hs';
+        el.innerHTML = `
+            <div class="a2hs-top">
+                <img src="icon-192.png" alt="">
+                <div>
+                    <div class="a2hs-title">Hol dir die App aufs Handy 📲</div>
+                    <div class="a2hs-text">${text}</div>
+                </div>
+            </div>
+            <div class="a2hs-btns">
+                <button class="a2hs-later">Später</button>
+                <button class="a2hs-main">${mainBtn}</button>
+            </div>
+            <button class="a2hs-never">Nicht mehr anzeigen</button>`;
+        document.body.appendChild(el);
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+
+        el.querySelector('.a2hs-later').onclick = () => { ls.set('midus_a2hs', String(Date.now() + 7 * 86400000)); hideA2HS(); };
+        el.querySelector('.a2hs-never').onclick = () => { ls.set('midus_a2hs', 'never'); hideA2HS(); };
+        el.querySelector('.a2hs-main').onclick = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const choice = await deferredPrompt.userChoice.catch(() => null);
+                deferredPrompt = null;
+                ls.set('midus_a2hs', choice && choice.outcome === 'accepted' ? 'never' : String(Date.now() + 7 * 86400000));
+            } else {
+                // Anleitung gelesen -> in 7 Tagen nochmal erinnern, falls noch nicht installiert
+                ls.set('midus_a2hs', String(Date.now() + 7 * 86400000));
+            }
+            hideA2HS();
+        };
+    }
+
+    // Kurz warten, damit die Seite erst lädt (und Android die Installation anbieten kann)
+    window.addEventListener('load', () => setTimeout(showA2HS, 2500));
+
     // Hilfsfunktion: Text sicher in HTML einsetzen
     window.uiEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 })();
