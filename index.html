@@ -52,6 +52,7 @@
         @keyframes gain-pop { 0% { opacity: 0; transform: translateY(8px) scale(0.8); } 15% { opacity: 1; transform: translateY(0) scale(1.15); } 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-10px); } }
         .profile-line { font-size: 12px; color: #666; margin-top: 10px; }
         .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--pink)); border-radius: 10px; transition: width 1s; }
+        #pin-input:placeholder-shown { letter-spacing: normal !important; }
         .timer-display { font-size: 54px; font-weight: bold; color: var(--green); margin: 20px 0; }
 
         .warning-box {
@@ -111,6 +112,7 @@
             <input type="email" id="email-input" placeholder="E-Mail Adresse" autocomplete="email">
             <input type="password" id="pin-input" placeholder="PIN (4 Ziffern)" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="current-password" style="letter-spacing: 6px;">
             <button id="login-btn" onclick="login()">Anmelden</button>
+            <p style="font-size:12px; color:#777; margin-top:14px; line-height:1.4;">Mit der Anmeldung nimmst du am VIP-Treueprogramm teil. Infos zum <a href="datenschutz.html" style="color:#00d2ff;">Datenschutz</a>.</p>
         </div>
     </div>
 
@@ -187,6 +189,7 @@
             <p style="font-size: 12px; color: #777; margin-top: 8px; line-height: 1.4;">Deine Pointz verfallen beim Einlösen nicht – erst nach dem 20 € Gutschein startest du wieder bei 0.</p>
             <p class="profile-line" id="profile-line"></p>
             <button onclick="logout()" style="background:transparent; border:1px solid #333; color:#999; font-size:13px; margin-top:12px; padding:10px; cursor:pointer;">Abmelden</button>
+            <p style="font-size:12px; margin-top:12px;"><a href="datenschutz.html#datenschutz" style="color:#777;">Datenschutz</a> <span style="color:#444;">·</span> <a href="datenschutz.html#impressum" style="color:#777;">Impressum</a></p>
         </div>
     </div>
 
