@@ -39,6 +39,10 @@
             flex-shrink: 0;
         }
         .category-bar::-webkit-scrollbar { display: none; } 
+        /* Laptop/PC mit Maus: Kategorien umbrechen statt seitlich schieben */
+        @media (hover: hover) and (pointer: fine) {
+            .category-bar { flex-wrap: wrap; overflow-x: visible; justify-content: center; }
+        }
 
         .cat-pill {
             background: #0f0f0f;
