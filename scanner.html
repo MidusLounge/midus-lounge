@@ -108,8 +108,8 @@
                 if (busy) return;
                 let clean = decodedText.trim();
 
-                // LAUTLOSER TÜRSTEHER: Lässt exakt 3 Dinge durch: Kellner-Festcode, Kellner-Scan-JSON oder echten M-Lounge-Kassenbon
-                if (clean !== "midus_lounge_10" && !clean.includes("{") && !clean.startsWith("_R1-AT")) {
+                // Nur österreichische Kassenbons (RKSV-QR) – geprüft wird am Server
+                if (!clean.startsWith("_R1-AT")) {
                     return;
                 }
 
@@ -117,7 +117,7 @@
                 html5QrCode.stop();
                 processScannedQR(clean);
             }
-        ).then(() => { statusEl.innerText = "📸 Halte Bon oder VIP-Code ins Feld."; statusEl.style.color = "#aaa"; })
+        ).then(() => { statusEl.innerText = "📸 Halte den QR-Code vom Kassenbon ins Feld."; statusEl.style.color = "#aaa"; })
          .catch(err => { console.error(err); statusEl.innerText = "⚠️ Kamerazugriff verweigert. Du kannst den Bon aber unten als Bild hochladen."; statusEl.style.color = "#ff3333"; });
     }
     startCamera();
@@ -180,94 +180,46 @@
 
     async function processScannedQR(textData) {
         const statusEl = document.getElementById('status');
-        statusEl.innerText = "Beleg wird entschlüsselt...";
+        statusEl.innerText = "Beleg wird geprüft...";
         statusEl.style.color = "var(--cyan)";
-        
-        let email, pointsToAdd = 0, umsatz = 0;
-        const loggedInUser = localStorage.getItem('midus_user');
 
-        // MODUS 1: Österreichischer RKSV-Kassenbon aus Schrems
-        if (textData.startsWith("_R1-AT")) {
-            if (!loggedInUser) {
-                await uiAlert("Nicht angemeldet", "Bitte melde dich zuerst an, um Bons einzulösen.", "info", "🔑");
-                window.location.href = "index.html";
-                return;
-            }
-
-            let parts = textData.split('_');
-            
-            // ABGLEICH MIT EURER ECHTEN KASSEN-DNA:
-            if (parts[2] !== "6MiQF1") {
-                await uiAlert("Beleg abgelehnt", "Dieser Beleg stammt nicht von der Midus Lounge.", "error", "🚫");
-                location.reload(); return;
-            }
-
-            let fingerprint = `${parts[2]}_${parts[3]}_${parts[4]}`; // Kasse_BelegNr_Zeitstempel
-
-            // 1. Doppel-Scan Sperre via Supabase
-            const { data: claimData } = await sb.from('claimed_receipts').select('id').eq('fingerprint', fingerprint).single();
-            if (claimData) {
-                await uiAlert("Schon eingelöst", "Dieser Kassenbon wurde bereits für Pointz verwendet.", "error", "🚨");
-                location.reload(); return;
-            }
-
-            // 2. Brutto-Umsatz auslesen (Konvertiert österreichische Kommas in mathematische Punkte!)
-            const p5 = parseFloat((parts[5]||"0").replace(',', '.'));
-            const p6 = parseFloat((parts[6]||"0").replace(',', '.'));
-            const p7 = parseFloat((parts[7]||"0").replace(',', '.'));
-            const p8 = parseFloat((parts[8]||"0").replace(',', '.'));
-            const p9 = parseFloat((parts[9]||"0").replace(',', '.'));
-
-            umsatz = p5 + p6 + p7 + p8 + p9;
-            pointsToAdd = Math.round(umsatz); // Runden: 8,49 € -> 8 Pts | 8,50 € -> 9 Pts
-
-            if (pointsToAdd <= 0) {
-                await uiAlert("Kein Umsatz", "Auf diesem Bon stehen 0,00 € – dafür gibt's leider keine Pointz.", "error", "🧾");
-                location.reload(); return;
-            }
-
-            // 3. Beleg-Fingerabdruck in Supabase für immer verriegeln
-            await sb.from('claimed_receipts').insert([{ fingerprint: fingerprint }]);
-
-            email = loggedInUser;
-
-        } else if (textData === "midus_lounge_10") {
-            // MODUS 2: 10er Festcode vom Kellner
-            if (!loggedInUser) { await uiAlert("Nicht angemeldet", "Bitte melde dich zuerst an.", "info", "🔑"); window.location.href = "index.html"; return; }
-            email = loggedInUser;
-            pointsToAdd = 10;
-        } else {
-            // MODUS 3: Kellner scannt Gäste-Handy via JSON
-            try {
-                const jsonObj = JSON.parse(textData);
-                email = jsonObj.email.trim().toLowerCase();
-                pointsToAdd = parseInt(jsonObj.points) || 10;
-            } catch(e) { email = textData.trim().toLowerCase(); pointsToAdd = 10; }
-        }
-        
-        if (!email) { await uiAlert("Fehler", "Keine VIP-Daten gefunden.", "error", "⚠️"); location.reload(); return; }
-
-        const { data, error } = await sb.from('vip_guests').select('points').eq('email', email).single();
-        
-        if (error) { 
-            await uiAlert("Konto nicht gefunden", "Kein Gast-Konto für <b>" + uiEsc(email) + "</b>.", "error", "🔍"); location.reload(); 
-        } else {
-            let oldPts = data.points || 0;
-            await sb.from('vip_guests').update({ points: oldPts + pointsToAdd }).eq('email', email);
-            
-            // Erfolg wird auf der Startseite mit hochzählenden Pointz angezeigt
-            if (textData.startsWith("_R1-AT")) {
-                sessionStorage.setItem('midus_gain', JSON.stringify({ points: pointsToAdd, icon: "🧾", title: "Bon erfasst!",
-                    text: `Umsatz: <b>${umsatz.toFixed(2).replace('.', ',')} €</b>\nDir wurden <b>+${pointsToAdd} Pointz</b> gutgeschrieben.` }));
-            } else if (textData === "midus_lounge_10") { 
-                sessionStorage.setItem('midus_gain', JSON.stringify({ points: 10, icon: "🍹", title: "BÄM!", text: "<b>+10 Pointz</b> gutgeschrieben." }));
-            } else { 
-                // Kellner-Modus: Punkte gehen an einen anderen Gast -> hier bestätigen
-                await uiAlert("Gebucht!", `<b>+${pointsToAdd} Pointz</b> für ${uiEsc(email)}.`, "success", "✅");
-            }
-            
+        let token = null;
+        try { token = localStorage.getItem('midus_token'); } catch (_) {}
+        if (!token) {
+            await uiAlert("Nicht angemeldet", "Bitte melde dich zuerst mit E-Mail und PIN an, um Bons einzulösen.", "info", "🔑");
             window.location.href = "index.html";
+            return;
         }
+
+        // Punkte werden am Server berechnet und gebucht – das Handy kann nichts mehr manipulieren
+        const { data, error } = await sb.rpc('guest_claim_receipt', { p_token: token, p_code: textData });
+        const r = (!error && data) ? data : { error: 'NETWORK' };
+
+        if (r.error) {
+            const msg = {
+                SESSION_INVALID: ["Bitte neu anmelden", "Deine Anmeldung ist abgelaufen.", "info", "🔑"],
+                FOREIGN: ["Beleg abgelehnt", "Dieser Beleg stammt nicht von der Midus Lounge.", "error", "🚫"],
+                ALREADY: ["Schon eingelöst", "Dieser Kassenbon wurde bereits für Pointz verwendet.", "error", "🚨"],
+                TOO_OLD: ["Bon zu alt", "Bons können nur innerhalb von <b>7 Tagen</b> eingelöst werden.", "error", "📅"],
+                ZERO: ["Kein Umsatz", "Auf diesem Bon stehen 0,00 € – dafür gibt's leider keine Pointz.", "error", "🧾"],
+                INVALID: ["Ungültiger Beleg", "Dieser QR-Code konnte nicht als Kassenbon erkannt werden.", "error", "⚠️"],
+                NETWORK: ["Verbindungsproblem", "Bitte prüfe dein Internet und versuch es nochmal.", "error", "📶"]
+            }[r.error] || ["Fehler", "Da ist etwas schiefgelaufen.", "error", "⚠️"];
+            await uiAlert(msg[0], msg[1], msg[2], msg[3]);
+            if (r.error === 'SESSION_INVALID') {
+                try { localStorage.removeItem('midus_token'); } catch (_) {}
+                window.location.href = "index.html";
+            } else {
+                location.reload();
+            }
+            return;
+        }
+
+        // Erfolg wird auf der Startseite mit hochzählenden Pointz angezeigt
+        const umsatz = Number(r.amount).toFixed(2).replace('.', ',');
+        sessionStorage.setItem('midus_gain', JSON.stringify({ points: r.points_added, icon: "🧾", title: "Bon erfasst!",
+            text: `Umsatz: <b>${umsatz} €</b>\nDir wurden <b>+${r.points_added} Pointz</b> gutgeschrieben.` }));
+        window.location.href = "index.html";
     }
 </script>
 </body>

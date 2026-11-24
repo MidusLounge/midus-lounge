@@ -106,9 +106,11 @@
 <div class="app-container">
     <div id="login-overlay" style="display: flex;">
         <img src="logo.png" alt="Midus Lounge Logo" style="width: 100%; max-width: 210px; object-fit: contain; display: block; margin: -5px auto 15px auto;">
+        <p style="color:#bbb; font-size:15px; margin-bottom:18px; max-width:290px; line-height:1.45;">Melde dich mit deiner E-Mail und deinem <b style="color:#fff;">4-stelligen PIN</b> an.<br><span style="color:#777; font-size:13px;">Neu hier? Wähl einfach einen PIN – dein Konto wird automatisch angelegt.</span></p>
         <div class="input-group">
-            <input type="email" id="email-input" placeholder="E-Mail Adresse">
-            <button onclick="login()">Anmelden</button>
+            <input type="email" id="email-input" placeholder="E-Mail Adresse" autocomplete="email">
+            <input type="password" id="pin-input" placeholder="PIN (4 Ziffern)" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="current-password" style="letter-spacing: 6px;">
+            <button id="login-btn" onclick="login()">Anmelden</button>
         </div>
     </div>
 
@@ -200,7 +202,38 @@
 <script>
     const sb = supabase.createClient('https://bbtjimaixtekzejoslfw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGppbWFpeHRla3plam9zbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODg4MDAsImV4cCI6MjA5NzQ2NDgwMH0.7-CCHxAaLbhj9wmKtNoTeYyiBYAXelsZsI3riA6yeOY');
     let countdownInterval;
-    
+
+    // Sitzung: Token vom Server (statt nur E-Mail im Handy)
+    const store = {
+        get: k => { try { return localStorage.getItem(k); } catch (_) { return null; } },
+        set: (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} },
+        del: k => { try { localStorage.removeItem(k); } catch (_) {} }
+    };
+
+    // Alle Server-Aufrufe laufen über sichere Funktionen in Supabase
+    async function api(fn, params) {
+        const { data, error } = await sb.rpc(fn, params);
+        if (error) { console.error(error); return { error: 'NETWORK' }; }
+        return data || { error: 'NETWORK' };
+    }
+
+    const errorTexts = {
+        EMAIL_INVALID: ["Ungültige E-Mail", "Bitte gib eine gültige E-Mail-Adresse ein."],
+        PIN_FORMAT: ["PIN ungültig", "Der PIN muss genau 4 Ziffern haben."],
+        NETWORK: ["Verbindungsproblem", "Bitte prüfe dein Internet und versuch es nochmal."],
+        SESSION_INVALID: ["Bitte neu anmelden", "Deine Anmeldung ist abgelaufen."],
+        ALREADY: ["Schon eingelöst", "Diese Prämie hast du bereits eingelöst."],
+        NOT_ENOUGH: ["Zu wenig Pointz", "Dafür hast du noch nicht genug Pointz gesammelt."],
+        NOT_AVAILABLE: ["Nicht verfügbar", "Der Geburtstags-Cocktail gilt nur in der Woche ab deinem Geburtstag."],
+        DATE_INVALID: ["Datum ungültig", "Bitte wähle ein gültiges Geburtsdatum."],
+        ALREADY_SET: ["Schon gespeichert", "Dein Geburtstag ist bereits gespeichert."]
+    };
+    async function showError(code, extra) {
+        if (code === 'SESSION_INVALID') { await uiAlert(...errorTexts.SESSION_INVALID, "info", "🔑"); logout(true); return; }
+        const t = errorTexts[code] || ["Fehler", "Da ist etwas schiefgelaufen."];
+        await uiAlert(t[0], extra || t[1], "error", "⚠️");
+    }
+
     const rewardNames = {
         50: "Spritzer 0,25l/ Schremser 0,3l oder Alkoholfrei 0,3l 🍷🍺",
         150: "1 Longdrink oder 1 Shot deiner Wahl 🍹🥃",
@@ -208,62 +241,64 @@
         500: "1 Gutschein 20€ 💶👑"
     };
 
-    function isValidEmail(email) {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    }
+    async function login() {
+        const email = document.getElementById('email-input').value.trim().toLowerCase();
+        const pin = document.getElementById('pin-input').value.trim();
+        if (!email) return;
+        if (!/^\d{4}$/.test(pin)) { await showError('PIN_FORMAT'); return; }
 
-    async function login() { 
-        const email = document.getElementById('email-input').value.trim().toLowerCase(); 
-        
-        if (!email) return; 
+        const btn = document.getElementById('login-btn');
+        btn.disabled = true; btn.textContent = "Moment...";
+        const r = await api('guest_login', { p_email: email, p_pin: pin });
+        btn.disabled = false; btn.textContent = "Anmelden";
 
-        if (!isValidEmail(email)) {
-            await uiAlert("Ungültige E-Mail", "Bitte gib eine gültige E-Mail-Adresse ein.", "error", "✉️");
+        if (r.error === 'PIN_WRONG') {
+            await uiAlert("PIN falsch", `Noch <b>${r.left}</b> ${r.left === 1 ? 'Versuch' : 'Versuche'}, dann wird das Konto 15 Minuten gesperrt.\n\nPIN vergessen? Sag uns an der Bar Bescheid.`, "error", "🔒");
             return;
         }
+        if (r.error === 'LOCKED') {
+            await uiAlert("Kurz gesperrt", `Zu viele falsche Versuche. Bitte probier es in <b>${r.minutes} Minuten</b> nochmal.`, "error", "⏳");
+            return;
+        }
+        if (r.error) { await showError(r.error); return; }
 
-        const { data } = await sb.from('vip_guests').select('*').eq('email', email); 
-        if (data.length === 0) await sb.from('vip_guests').insert([{ email: email, points: 0 }]); 
-        localStorage.setItem('midus_user', email);
-        checkProfile(email); 
+        store.set('midus_token', r.token);
+        store.set('midus_user', r.email);
+        if (r.new_pin) {
+            await uiAlert("PIN gespeichert!", `Merk dir deinen PIN gut – du brauchst ihn, wenn du dich auf einem anderen Handy anmeldest.`, "success", "🔐");
+        }
+        if (r.needs_birthday) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('birthday-setup').style.display = 'flex';
+        } else {
+            location.reload();
+        }
     }
 
-    async function checkProfile(email) { 
-        const { data } = await sb.from('vip_guests').select('birth_date').eq('email', email).single(); 
-        if (!data || !data.birth_date) { 
-            document.getElementById('birthday-setup').style.display = 'flex'; 
-            document.getElementById('login-overlay').style.display = 'none'; 
-        } else { 
-            location.reload(); 
-        } 
-    }
-
-    async function saveBirthday() { 
-        const birthDate = document.getElementById('birth-date-input').value; 
-        if(!birthDate) { await uiAlert("Datum fehlt", "Bitte wähle dein Geburtsdatum aus.", "error", "📅"); return; }
+    async function saveBirthday() {
+        const birthDate = document.getElementById('birth-date-input').value;
+        if (!birthDate) { await uiAlert("Datum fehlt", "Bitte wähle dein Geburtsdatum aus.", "error", "📅"); return; }
         const [by, bm, bd] = birthDate.split('-');
         const ok = await uiConfirm("Stimmt das so?", `Dein Geburtstag: <b>${bd}.${bm}.${by}</b>\n\nDas Datum kann später <b>nicht mehr geändert</b> werden.`, "Ja, speichern", "Ändern", "pink", "🎂");
         if (!ok) return;
-        await sb.from('vip_guests').update({ birth_date: birthDate }).eq('email', localStorage.getItem('midus_user')); 
-        location.reload(); 
+        const r = await api('guest_set_birthday', { p_token: store.get('midus_token'), p_date: birthDate });
+        if (r.error && r.error !== 'ALREADY_SET') { await showError(r.error); return; }
+        location.reload();
     }
 
-    function openBdayVoucher() {
+    async function openBdayVoucher() {
+        const ok = await uiConfirm("Bist du an der Bar?", `Dein <b>Gratis-Geburtstags-Cocktail</b> 🎂\n\nNach dem Klick läuft der Gutschein <b>5 Minuten</b> – zeig ihn sofort dem Personal!`, "Jetzt einlösen", "Abbrechen", "pink", "🍹");
+        if (!ok) return;
+        const r = await api('guest_claim_birthday', { p_token: store.get('midus_token') });
+        if (r.error) { await showError(r.error); return; }
         document.getElementById('bday-voucher-overlay').style.display = 'flex';
-        startTimer('bday-timer', 300, () => location.reload()); 
+        startTimer('bday-timer', 300, () => location.reload());
     }
 
-    function closeBdayVoucher() { 
-        clearInterval(countdownInterval); 
-        const email = localStorage.getItem('midus_user');
-        localStorage.setItem('midus_cocktail_claim_' + new Date().getFullYear() + '_' + email, 'true'); 
-        location.reload(); 
-    }
-    
+    function closeBdayVoucher() { clearInterval(countdownInterval); location.reload(); }
+
     async function claimTier(tierCost, userRow) {
-        const email = localStorage.getItem('midus_user');
-        if (!email || userRow['claimed_' + tierCost]) return;
+        if (userRow['claimed_' + tierCost]) return;
 
         let ok;
         if (tierCost === 500) {
@@ -273,15 +308,8 @@
         }
         if (!ok) return;
 
-        let payload = {};
-        if (tierCost === 500) {
-            payload = { points: 0, claimed_50: false, claimed_150: false, claimed_300: false, claimed_500: false };
-        } else {
-            payload['claimed_' + tierCost] = true;
-        }
-
-        const { error } = await sb.from('vip_guests').update(payload).eq('email', email);
-        if (error) { await uiAlert("Fehler", "Serverfehler beim Einlösen. Bitte versuch es nochmal.", "error", "⚠️"); return; }
+        const r = await api('guest_redeem', { p_token: store.get('midus_token'), p_tier: tierCost });
+        if (r.error) { await showError(r.error); return; }
 
         document.getElementById('redeem-drink-title').innerText = rewardNames[tierCost];
         document.getElementById('redeem-overlay').style.display = 'flex';
@@ -290,36 +318,43 @@
 
     function renderBattlePass(userData) {
         const pts = userData.points || 0;
-        const tiers = [50, 150, 300, 500];
-
-        tiers.forEach(t => {
+        [50, 150, 300, 500].forEach(t => {
             const el = document.getElementById('rew-' + t);
             const st = document.getElementById('stat-' + t);
-            const alreadyClaimed = userData['claimed_' + t] === true;
-
-            if (alreadyClaimed) {
-               el.className = 'reward-item claimed';
-               st.innerHTML = '<span class="btn-claimed">✅ EINGELÖST</span>';
-               el.onclick = null;
+            if (userData['claimed_' + t] === true) {
+                el.className = 'reward-item claimed';
+                st.innerHTML = '<span class="btn-claimed">✅ EINGELÖST</span>';
+                el.onclick = null;
             } else if (pts >= t) {
-               el.className = 'reward-item ready';
-               st.innerHTML = '<button class="btn-claim">EINLÖSEN</button>';
-               el.onclick = () => claimTier(t, userData);
+                el.className = 'reward-item ready';
+                st.innerHTML = '<button class="btn-claim">EINLÖSEN</button>';
+                el.onclick = () => claimTier(t, userData);
             } else {
-               el.className = 'reward-item';
-               st.innerText = '🔒';
-               el.onclick = null;
+                el.className = 'reward-item';
+                st.innerText = '🔒';
+                el.onclick = null;
             }
         });
     }
 
-    function startTimer(id, dur, cb) { 
-        let t = dur; 
-        countdownInterval = setInterval(() => { 
-            let m = parseInt(t/60), s = parseInt(t%60);
-            document.getElementById(id).textContent = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
-            if (--t < 0) { clearInterval(countdownInterval); cb(); } 
-        }, 1000); 
+    function startTimer(id, dur, cb) {
+        let t = dur;
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            let m = parseInt(t / 60), s = parseInt(t % 60);
+            document.getElementById(id).textContent = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+            if (--t < 0) { clearInterval(countdownInterval); cb(); }
+        }, 1000);
+    }
+
+    function closeRedeemOverlay() { clearInterval(countdownInterval); location.reload(); }
+
+    async function logout(silent) {
+        const t = store.get('midus_token');
+        if (t && !silent) await api('guest_logout', { p_token: t });
+        store.del('midus_token');
+        store.del('midus_user');
+        location.reload();
     }
 
     const goalNames = { 50: "Gratis-Spritzer, Bier oder Alkoholfrei", 150: "Longdrink oder Shot", 300: "Cocktail oder Mocktail", 500: "20 € Gutschein" };
@@ -335,7 +370,6 @@
     }
 
     function renderPoints(pts, userData) {
-        // Nächstes Ziel bzw. Hinweis auf einlösbare Prämie
         const tiers = [50, 150, 300, 500];
         const ready = tiers.filter(t => pts >= t && !userData['claimed_' + t]);
         const next = tiers.find(t => pts < t);
@@ -356,60 +390,64 @@
         const start = Math.max(0, pts - gain.points);
         setPointsUI(start);
         const t0 = performance.now(), dur = 1500;
-        setTimeout(() => {
-            function step(now) {
-                const k = Math.min((now - t0 - 400) / dur, 1);
-                if (k < 0) { requestAnimationFrame(step); return; }
-                const ease = 1 - Math.pow(1 - k, 3);
-                setPointsUI(Math.round(start + (pts - start) * ease));
-                if (k < 1) requestAnimationFrame(step);
-                else {
-                    const b = document.createElement('span');
-                    b.className = 'gain-badge'; b.textContent = '+' + gain.points;
-                    document.getElementById('points-display').appendChild(b);
-                }
+        function step(now) {
+            const k = Math.min((now - t0 - 400) / dur, 1);
+            if (k < 0) { requestAnimationFrame(step); return; }
+            const ease = 1 - Math.pow(1 - k, 3);
+            setPointsUI(Math.round(start + (pts - start) * ease));
+            if (k < 1) requestAnimationFrame(step);
+            else {
+                const b = document.createElement('span');
+                b.className = 'gain-badge'; b.textContent = '+' + gain.points;
+                document.getElementById('points-display').appendChild(b);
             }
-            requestAnimationFrame(step);
-        }, 0);
+        }
+        requestAnimationFrame(step);
         uiAlert(gain.title || "Pointz gebucht!", gain.text || `<b>+${gain.points} Pointz</b> gutgeschrieben.`, "success", gain.icon || "🎉");
     }
 
-    function showProfileLine(birthDate) {
-        if (!birthDate) return;
-        const p = String(birthDate).split('-');
-        const txt = p.length === 3 ? `${p[2]}.${p[1]}.` : birthDate;
-        document.getElementById('profile-line').textContent = `🎂 Dein Geburtstag: ${txt} · ${localStorage.getItem('midus_user') || ''}`;
+    function showProfileLine(email, birthDate) {
+        let txt = email || '';
+        if (birthDate) {
+            const p = String(birthDate).split('-');
+            txt = `🎂 Dein Geburtstag: ${p.length === 3 ? p[2] + '.' + p[1] + '.' : birthDate} · ` + txt;
+        }
+        document.getElementById('profile-line').textContent = txt;
     }
 
-    function closeRedeemOverlay() { clearInterval(countdownInterval); location.reload(); }
-    function logout() { localStorage.removeItem('midus_user'); location.reload(); }
+    // ---------- Start ----------
+    (async function init() {
+        const token = store.get('midus_token');
+        const oldUser = store.get('midus_user');
 
-    const u = localStorage.getItem('midus_user'); 
-    if(u) { 
-        document.getElementById('login-overlay').style.display = 'none'; 
-        sb.from('vip_guests').select('*').eq('email', u).single().then(r => {
-            if(r.data) { 
-                const pts = r.data.points || 0; 
-                renderPoints(pts, r.data);
-                renderBattlePass(r.data);
-                showProfileLine(r.data.birth_date);
+        if (!token) {
+            // Gäste der alten Version: E-Mail schon vorausfüllen, PIN fehlt noch
+            if (oldUser) document.getElementById('email-input').value = oldUser;
+            return; // Login bleibt sichtbar
+        }
 
-                if (r.data.birth_date) { 
-                   let bStr = r.data.birth_date.trim(); let bM, bD;
-                   if (bStr.includes('-')) { let parts = bStr.split('-'); bM = parseInt(parts[1], 10)-1; bD = parseInt(parts[2], 10); } 
-                   else if (bStr.includes('.')) { let parts = bStr.split('.'); bD = parseInt(parts[0], 10); bM = parseInt(parts[1], 10)-1; } 
-                   else { let dObj = new Date(bStr); bM = dObj.getMonth(); bD = dObj.getDate(); }
+        document.getElementById('login-overlay').style.display = 'none';
+        const r = await api('guest_me', { p_token: token });
+        if (r.error === 'SESSION_INVALID') { store.del('midus_token'); location.reload(); return; }
+        if (r.error) { await showError(r.error); return; }
 
-                   const now = new Date(); const y = now.getFullYear();
-                   const diffDays = Math.round((new Date(y, now.getMonth(), now.getDate()).getTime() - new Date(y, bM, bD).getTime()) / 86400000);
-                   if (diffDays >= 0 && diffDays <= 7 && !localStorage.getItem('midus_cocktail_claim_' + y + '_' + u)) {
-                       document.getElementById('bday-claim-btn').style.display = 'flex';
-                       document.getElementById('bday-warning').style.display = 'block';
-                   }
-                } 
-            } 
-        }); 
-    }
+        if (!r.birth_date) {
+            document.getElementById('birthday-setup').style.display = 'flex';
+            return;
+        }
+
+        renderPoints(r.points, r);
+        renderBattlePass(r);
+        showProfileLine(r.email, r.birth_date);
+
+        if (r.bday_available) {
+            document.getElementById('bday-claim-btn').style.display = 'flex';
+            document.getElementById('bday-warning').style.display = 'block';
+        }
+    })();
+
+    // Enter-Taste im PIN-Feld = Anmelden
+    document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 </script>
 
 <script>
